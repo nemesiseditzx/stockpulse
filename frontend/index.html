@@ -10,6 +10,7 @@ body{margin:0;display:flex;background:#020617;color:white;font-family:sans-serif
 .sidebar a:hover{background:#1e293b}
 .main{flex:1;padding:20px}
 #chart{height:500px}
+.card{background:#111;padding:10px;margin:5px;border-radius:8px}
 </style>
 </head>
 
@@ -17,11 +18,11 @@ body{margin:0;display:flex;background:#020617;color:white;font-family:sans-serif
 
 <div class="sidebar">
 <h2>🚀 StockPulse</h2>
-<a href="/">📊 Dashboard</a>
-<a href="/halal">🕌 Halal</a>
-<a href="/news">📰 News</a>
-<a href="/signals">📈 Signals</a>
-<a href="/alerts">🔔 Alerts</a>
+<a href="/index.html">Dashboard</a>
+<a href="/halal.html">Halal</a>
+<a href="/news.html">News</a>
+<a href="/signals.html">Signals</a>
+<a href="/alerts.html">Alerts</a>
 </div>
 
 <div class="main">
@@ -33,6 +34,7 @@ body{margin:0;display:flex;background:#020617;color:white;font-family:sans-serif
 
 <div id="chart"></div>
 
+<h2>Stocks</h2>
 <div id="stocks"></div>
 
 </div>
@@ -65,7 +67,10 @@ Object.keys(d).forEach(s=>{
 let i=d[s];
 
 let div=document.createElement("div");
+div.className="card";
+
 div.innerHTML=`${s} - $${i.price} (${i.signal})`;
+
 c.appendChild(div);
 });
 });
