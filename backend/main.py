@@ -13,8 +13,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-STOCKS = ["AAPL", "TSLA", "BTC-USD", "MSFT", "NVDA", "AMZN"]
+# 🔥 MORE STOCKS + CRYPTO
+STOCKS = [
+    "AAPL", "TSLA", "MSFT", "NVDA", "AMZN",
+    "META", "GOOGL", "NFLX", "AMD", "INTC",
+    "BTC-USD", "ETH-USD"
+]
 
+# 📊 MARKET DATA + SIGNAL ENGINE
 @app.get("/")
 def get_data():
     data = {}
@@ -30,14 +36,28 @@ def get_data():
             change = latest - previous
             percent = (change / previous) * 100
 
+            # 🔥 SIGNAL LOGIC
+            signal = "HOLD"
+
+            if percent > 1.5:
+                signal = "STRONG BUY 🚀"
+            elif percent > 0.5:
+                signal = "BUY"
+            elif percent < -1.5:
+                signal = "STRONG SELL ⚠️"
+            elif percent < -0.5:
+                signal = "SELL"
+
             data[symbol] = {
                 "price": round(float(latest), 2),
-                "change": round(float(percent), 2)
+                "change": round(float(percent), 2),
+                "signal": signal
             }
 
     return data
 
 
+# 🌍 NEWS + IMPACT ENGINE
 @app.get("/news")
 def get_news():
     url = "https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=5&apiKey=4a92eeeadf4a49d292083c9fae812c47"
@@ -48,9 +68,20 @@ def get_news():
     news = []
 
     for article in articles:
+        title = article["title"].lower()
+
+        impact = "🟡 Neutral"
+
+        # 🔥 IMPACT DETECTION
+        if "war" in title or "conflict" in title:
+            impact = "🔴 HIGH IMPACT"
+        elif "trump" in title or "fed" in title or "interest rate" in title:
+            impact = "🟠 MARKET MOVING"
+
         news.append({
             "title": article["title"],
-            "url": article["url"]
+            "url": article["url"],
+            "impact": impact
         })
 
     return news
