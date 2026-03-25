@@ -47,8 +47,10 @@ def get_data():
                 change = ((l - p) / p) * 100
 
                 signal = "HOLD"
-                if change > 1: signal = "BUY"
-                elif change < -1: signal = "SELL"
+                if change > 1:
+                    signal = "BUY"
+                elif change < -1:
+                    signal = "SELL"
 
                 d[s] = {
                     "price": round(float(l),2),
@@ -70,7 +72,7 @@ def stocks():
 
 @app.get("/halal/{symbol}")
 def halal(symbol: str):
-    sym = symbol.upper().replace("-USD","")
+    sym = symbol.upper().replace("-USD", "")
 
     query = {
         "query": """
@@ -91,15 +93,16 @@ def halal(symbol: str):
         res = requests.post(ZOYA_URL, json=query, headers=headers)
         data = res.json()
 
-        if "data" not in data:
-            return {"status": "NOT FOUND"}
+        if "data" not in data or data["data"]["screening"] is None:
+            return {"status": "UNKNOWN"}
 
         if data["data"]["screening"]["shariahCompliant"]:
             return {"status": "HALAL"}
 
         return {"status": "HARAM"}
 
-    except:
+    except Exception as e:
+        print("ERROR:", e)
         return {"status": "ERROR"}
 
 
