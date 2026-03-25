@@ -1,4 +1,5 @@
 import yfinance as yf
+import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -12,7 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-STOCKS = ["AAPL", "TSLA", "BTC-USD"]
+STOCKS = ["AAPL", "TSLA", "BTC-USD", "MSFT", "NVDA", "AMZN"]
 
 @app.get("/")
 def get_data():
@@ -35,3 +36,21 @@ def get_data():
             }
 
     return data
+
+
+@app.get("/news")
+def get_news():
+    url = "https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=5&apiKey=4a92eeeadf4a49d292083c9fae812c47"
+
+    response = requests.get(url)
+    articles = response.json().get("articles", [])
+
+    news = []
+
+    for article in articles:
+        news.append({
+            "title": article["title"],
+            "url": article["url"]
+        })
+
+    return news
