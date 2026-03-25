@@ -1,44 +1,84 @@
-FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META"]
-FALLBACK_HARAM = ["JPM","BAC","C","GS"]
+<!DOCTYPE html>
+<html>
+<head>
+<title>Halal Checker</title>
 
-@app.get("/halal/{symbol}")
-def halal(symbol: str):
-    sym = symbol.upper().replace("-USD", "")
+<style>
+body{
+  background:#020617;
+  color:white;
+  font-family:sans-serif;
+  text-align:center;
+  padding:40px;
+}
 
-    # 🔥 fallback first (fast + reliable)
-    if sym in FALLBACK_HALAL:
-        return {"status": "HALAL"}
+input,button{
+  padding:10px;
+  margin:10px;
+  border:none;
+  border-radius:6px;
+}
 
-    if sym in FALLBACK_HARAM:
-        return {"status": "HARAM"}
+button{
+  background:#2563eb;
+  color:white;
+  cursor:pointer;
+}
 
-    # 🔥 Zoya check
-    query = {
-        "query": """
-        query ($ticker: String!) {
-          screening(ticker: $ticker) {
-            shariahCompliant
-          }
-        }
-        """,
-        "variables": {"ticker": sym}
-    }
+.card{
+  margin-top:30px;
+  padding:20px;
+  border-radius:10px;
+  display:inline-block;
+  min-width:200px;
+}
 
-    headers = {
-        "Authorization": f"Bearer {ZOYA_API_KEY}"
-    }
+.halal{ background:green; }
+.haram{ background:red; }
+.doubt{ background:orange; }
+.unknown{ background:gray; }
+</style>
+</head>
 
-    try:
-        res = requests.post(ZOYA_URL, json=query, headers=headers)
-        data = res.json()
+<body>
 
-        if "data" not in data or data["data"]["screening"] is None:
-            return {"status": "UNKNOWN"}
+<h1>🕌 Halal Stock Checker</h1>
 
-        if data["data"]["screening"]["shariahCompliant"]:
-            return {"status": "HALAL"}
+<input id="symbol" placeholder="AAPL">
+<button onclick="check()">Check</button>
 
-        return {"status": "HARAM"}
+<div id="result"></div>
 
-    except:
-        return {"status": "UNKNOWN"}
+<script>
+const API = "https://stockpulsebadhoneditzx.up.railway.app/";
+
+function check(){
+  let s = document.getElementById("symbol").value.trim();
+
+  if(!s) return;
+
+  fetch(API + "halal/" + s)
+  .then(r => r.json())
+  .then(d => {
+    let status = d.status;
+
+    let cls = "unknown";
+    if(status === "HALAL") cls = "halal";
+    else if(status === "HARAM") cls = "haram";
+    else if(status === "DOUBTFUL") cls = "doubt";
+
+    document.getElementById("result").innerHTML = `
+      <div class="card ${cls}">
+        <h2>${s.toUpperCase()}</h2>
+        <h1>${status}</h1>
+      </div>
+    `;
+  })
+  .catch(() => {
+    document.getElementById("result").innerHTML = "ERROR";
+  });
+}
+</script>
+
+</body>
+</html>
