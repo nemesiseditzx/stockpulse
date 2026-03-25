@@ -1,60 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>StockPulse Pro</title>
+<title>StockPulse Pro</title>
 
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: Arial;
-      text-align: center;
-    }
-
-    #stocks {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 30px;
-    }
-
-    .card {
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      width: 180px;
-    }
-
-    input {
-      padding: 10px;
-      width: 250px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      padding: 8px 12px;
-      border-radius: 5px;
-      border: none;
-      cursor: pointer;
-      margin: 5px;
-    }
-
-    #alertBar {
-      margin-top:15px;
-      padding:10px;
-      background:#111827;
-      border-radius:8px;
-      font-weight:bold;
-      color:#facc15;
-    }
-
-    .footer {
-      margin-top: 40px;
-      opacity: 0.6;
-    }
-  </style>
+<style>
+body{background:#0f172a;color:white;font-family:Arial;text-align:center;}
+.card{background:#1e293b;padding:15px;border-radius:10px;width:180px;}
+#stocks{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
+button,input{padding:8px;margin:5px;border-radius:5px;border:none;}
+#alertBar{background:#111827;padding:10px;margin-top:10px;}
+</style>
 </head>
 
 <body>
@@ -64,147 +19,136 @@
 
 <div id="alertBar">Loading alerts...</div>
 
-<!-- SEARCH -->
-<div>
-  <input id="searchSymbol" placeholder="AAPL, TSLA, BTCUSDT">
-  <button onclick="searchChart()">Search</button>
-  <button onclick="addToWatchlist()">⭐ Add</button>
-</div>
+<input id="searchSymbol" placeholder="AAPL">
+<button onclick="searchChart()">Search</button>
+<button onclick="addWatch()">⭐ Add</button>
 
-<!-- 🕌 HALAL -->
-<h2>🕌 Halal Checker</h2>
-<input id="halalInput" placeholder="Enter stock">
-<button onclick="checkHalal()">Check</button>
-<p id="halalResult"></p>
-
-<!-- WATCHLIST -->
 <h2>📌 Watchlist</h2>
 <div id="watchlist"></div>
 
 <div id="stocks"></div>
 
-<!-- CHART -->
-<div style="margin-top:40px;">
-  <iframe id="tvChart"
-    src="https://s.tradingview.com/widgetembed/?symbol=NASDAQ:AAPL&interval=1&theme=dark"
-    width="90%" height="500"></iframe>
-</div>
+<iframe id="chart" width="90%" height="400"></iframe>
 
-<!-- NEWS -->
 <div id="news"></div>
 
-<div class="footer">
-  © 2026 StockPulse | Built by BADHON EDITZX
-</div>
+<!-- HALAL SECTION (BOTTOM) -->
+<h2>🕌 Halal Checker</h2>
+<input id="halalInput">
+<button onclick="checkHalal()">Check</button>
+<p id="halalResult"></p>
 
 <script>
-const API = "https://stockpulsebadhoneditzx.up.railway.app/";
+const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-// SEARCH
-function searchChart() {
-  let s = document.getElementById("searchSymbol").value.toUpperCase();
-  let symbol = s.includes("BTC") ? "BINANCE:"+s : "NASDAQ:"+s;
-  document.getElementById("tvChart").src =
-    `https://s.tradingview.com/widgetembed/?symbol=${symbol}&theme=dark`;
+// SEARCH FIX
+function searchChart(symbol){
+let s = symbol || document.getElementById("searchSymbol").value;
+if(!s) return;
+
+s=s.toUpperCase();
+let full = s.includes("BTC")?"BINANCE:"+s:"NASDAQ:"+s;
+
+document.getElementById("chart").src =
+`https://s.tradingview.com/widgetembed/?symbol=${full}&theme=dark`;
 }
 
-// WATCHLIST
-function addToWatchlist() {
-  let s = document.getElementById("searchSymbol").value.toUpperCase();
-  let list = JSON.parse(localStorage.getItem("watchlist")) || [];
-  if (!list.includes(s)) list.push(s);
-  localStorage.setItem("watchlist", JSON.stringify(list));
-  renderWatchlist();
+// WATCHLIST FIX
+function addWatch(){
+let s=document.getElementById("searchSymbol").value.toUpperCase();
+let list=JSON.parse(localStorage.getItem("w"))||[];
+if(!list.includes(s)) list.push(s);
+localStorage.setItem("w",JSON.stringify(list));
+renderWatch();
 }
 
-function renderWatchlist() {
-  let list = JSON.parse(localStorage.getItem("watchlist")) || [];
-  let container = document.getElementById("watchlist");
-  container.innerHTML = "";
+function renderWatch(){
+let list=JSON.parse(localStorage.getItem("w"))||[];
+let c=document.getElementById("watchlist");
+c.innerHTML="";
 
-  list.forEach(s => {
-    let btn = document.createElement("button");
-    btn.innerText = s;
-    btn.onclick = () => searchChart(s);
-    container.appendChild(btn);
-  });
-}
-
-// HALAL
-function checkHalal() {
-  let s = document.getElementById("halalInput").value;
-  fetch(API + "halal/" + s)
-    .then(r => r.json())
-    .then(d => {
-      document.getElementById("halalResult").innerText =
-        d.symbol + ": " + d.status;
-    });
+list.forEach(s=>{
+let b=document.createElement("button");
+b.innerText=s;
+b.onclick=()=>searchChart(s);
+c.appendChild(b);
+});
 }
 
 // ALERT
-function updateAlerts(data) {
-  let alerts = [];
-  Object.keys(data).forEach(s => {
-    let i = data[s];
-    if (i.change > 2) alerts.push("🚀 "+s);
-    if (i.change < -2) alerts.push("⚠️ "+s);
-  });
-  document.getElementById("alertBar").innerText =
-    alerts.join(" | ") || "No alerts";
+function alerts(data){
+let arr=[];
+Object.keys(data).forEach(s=>{
+if(data[s].change>2) arr.push("🚀 "+s);
+if(data[s].change<-2) arr.push("⚠️ "+s);
+});
+document.getElementById("alertBar").innerText =
+arr.join(" | ")||"No alerts";
 }
 
 // DATA
-function loadData() {
-  fetch(API)
-    .then(r => r.json())
-    .then(data => {
-      let c = document.getElementById("stocks");
-      c.innerHTML = "";
+function load(){
+fetch(API).then(r=>r.json()).then(d=>{
+let c=document.getElementById("stocks");
+c.innerHTML="";
 
-      Object.keys(data).forEach(s => {
-        let i = data[s];
-        let div = document.createElement("div");
-        div.className = "card";
+Object.keys(d).forEach(s=>{
+let i=d[s];
+let div=document.createElement("div");
+div.className="card";
 
-        div.innerHTML = `
-          <h3>${s}</h3>
-          <p>$${i.price}</p>
-          <p>${i.change}%</p>
-          <p>${i.signal}</p>
-          <p>${i.prediction}</p>
-          <p>${i.confidence}%</p>
-          <p>${i.volatility}</p>
-        `;
-        c.appendChild(div);
-      });
+div.innerHTML=`
+<h3>${s}</h3>
+<p>$${i.price}</p>
+<p>${i.change}%</p>
+<p>${i.signal}</p>
+<p>${i.prediction}</p>
+<p>${i.confidence}%</p>
+<p>${i.volatility}</p>
+`;
 
-      updateAlerts(data);
-    });
+c.appendChild(div);
+});
+
+alerts(d);
+});
 }
 
-// NEWS
-function loadNews() {
-  fetch(API+"news")
-    .then(r=>r.json())
-    .then(data=>{
-      let c=document.getElementById("news");
-      c.innerHTML="<h2>🌍 Market News</h2>";
+// NEWS UPGRADE
+function loadNews(){
+fetch(API+"news").then(r=>r.json()).then(d=>{
+let c=document.getElementById("news");
+c.innerHTML="<h2>🌍 Market Intelligence</h2>";
 
-      data.forEach(n=>{
-        let div=document.createElement("div");
-        div.innerHTML=`
-          <p>${n.impact} | ${n.direction}</p>
-          <p>${n.summary}</p>
-        `;
-        c.appendChild(div);
-      });
-    });
+d.forEach(n=>{
+let div=document.createElement("div");
+
+div.innerHTML=`
+<p><b>${n.impact}</b></p>
+<p>Reason: ${n.reason}</p>
+<p>Possible Effect: ${n.effect}</p>
+`;
+
+c.appendChild(div);
+});
+});
 }
 
-renderWatchlist();
-loadData();
+// HALAL FIX
+function checkHalal(){
+let s=document.getElementById("halalInput").value;
+fetch(API+"halal/"+s)
+.then(r=>r.json())
+.then(d=>{
+document.getElementById("halalResult").innerText=d.status;
+});
+}
+
+// INIT
+renderWatch();
+load();
 loadNews();
-setInterval(loadData,5000);
+setInterval(load,5000);
 </script>
 
 </body>
