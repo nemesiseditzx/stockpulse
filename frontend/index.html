@@ -29,31 +29,104 @@
     #news {
       margin-top: 40px;
     }
+
+    input {
+      padding: 10px;
+      width: 250px;
+      margin-top: 20px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    .brand {
+      opacity: 0.7;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 40px;
+      opacity: 0.6;
+      font-size: 14px;
+    }
   </style>
 </head>
 
 <body>
 
 <h1>📊 StockPulse PRO</h1>
+<p class="brand">by BADHON EDITZX</p>
+
+<!-- 🔍 SEARCH -->
+<div>
+  <input id="searchSymbol" placeholder="AAPL, TSLA, BTCUSDT">
+  <button onclick="searchChart()">Search</button>
+</div>
+
+<!-- ⚡ QUICK BUTTONS -->
+<div style="margin-top:10px;">
+  <button onclick="quick('NASDAQ:AAPL')">AAPL</button>
+  <button onclick="quick('NASDAQ:NVDA')">NVDA</button>
+  <button onclick="quick('NASDAQ:TSLA')">TSLA</button>
+  <button onclick="quick('BINANCE:BTCUSDT')">BTC</button>
+</div>
 
 <div id="stocks"></div>
 
-<!-- 🔥 REAL TRADINGVIEW CHART -->
+<!-- 📈 TRADINGVIEW CHART -->
 <div style="margin-top:40px;">
   <iframe 
-    src="https://s.tradingview.com/widgetembed/?symbol=NASDAQ:AAPL&interval=1&hidesidetoolbar=1&theme=dark"
+    id="tvChart"
+    src="https://s.tradingview.com/widgetembed/?symbol=NASDAQ:AAPL&interval=1&theme=dark"
     width="90%" 
     height="500"
     frameborder="0">
   </iframe>
 </div>
 
-<!-- NEWS -->
+<!-- 📰 NEWS -->
 <div id="news"></div>
+
+<!-- 👇 FOOTER -->
+<div class="footer">
+  © 2026 StockPulse | Built by BADHON EDITZX
+</div>
 
 <script>
 const API = "https://stockpulsebadhoneditzx.up.railway.app/";
 
+// 🔍 SEARCH FUNCTION
+function searchChart() {
+  let symbol = document.getElementById("searchSymbol").value;
+
+  if (!symbol) return;
+
+  symbol = symbol.toUpperCase();
+
+  if (symbol.includes("BTC") || symbol.includes("ETH")) {
+    symbol = "BINANCE:" + symbol;
+  } else {
+    symbol = "NASDAQ:" + symbol;
+  }
+
+  document.getElementById("tvChart").src =
+    `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=1&theme=dark`;
+}
+
+// ⚡ QUICK SWITCH
+function quick(symbol) {
+  document.getElementById("tvChart").src =
+    `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=1&theme=dark`;
+}
+
+// 📊 STOCK DATA
 function loadData() {
   fetch(API)
     .then(res => res.json())
@@ -81,6 +154,7 @@ function loadData() {
     });
 }
 
+// 📰 NEWS
 function loadNews() {
   fetch(API + "news")
     .then(res => res.json())
