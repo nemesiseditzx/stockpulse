@@ -1,34 +1,27 @@
-@app.get("/halal/{symbol}")
-def halal(symbol: str):
-    sym = symbol.upper().replace("-USD","")
+<!DOCTYPE html>
+<html>
+<body style="background:#020617;color:white;font-family:sans-serif">
 
-    query = {
-        "query": """
-        query ($ticker: String!) {
-          screening(ticker: $ticker) {
-            shariahCompliant
-          }
-        }
-        """,
-        "variables": {"ticker": sym}
-    }
+<h1>🕌 Halal Checker</h1>
 
-    headers = {
-        "Authorization": f"Bearer {ZOYA_API_KEY}"
-    }
+<input id="s" placeholder="AAPL">
+<button onclick="check()">Check</button>
 
-    try:
-        res = requests.post(ZOYA_URL, json=query, headers=headers)
-        data = res.json()
+<h2 id="r"></h2>
 
-        # ❗ যদি Zoya data না দেয়
-        if "data" not in data or data["data"]["screening"] is None:
-            return {"status": "UNKNOWN"}
+<script>
+const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-        if data["data"]["screening"]["shariahCompliant"]:
-            return {"status": "HALAL"}
+function check(){
+let s=document.getElementById("s").value;
 
-        return {"status": "HARAM"}
+fetch(API+"halal/"+s)
+.then(r=>r.json())
+.then(d=>{
+document.getElementById("r").innerText=d.status;
+});
+}
+</script>
 
-    except:
-        return {"status": "ERROR"}
+</body>
+</html>
