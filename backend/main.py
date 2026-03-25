@@ -16,19 +16,22 @@ app.add_middleware(
 STOCKS = [
     "AAPL","TSLA","MSFT","NVDA","AMZN",
     "META","GOOGL","NFLX","AMD","INTC",
-    "BTC-USD","ETH-USD","JPM","BAC"
+    "BTC-USD","ETH-USD","JPM","BAC","C","GS"
 ]
 
-HALAL = ["AAPL","MSFT","NVDA","TSLA","GOOGL","AMD","META"]
-HARAM = ["JPM","BAC","C","GS","WFC"]
+# 🕌 HALAL DATABASE (CLEAR LIST SYSTEM)
+HALAL_STOCKS = [
+    "AAPL","MSFT","NVDA","TSLA","GOOGL","AMD","META","INTC"
+]
 
-# 📊 MARKET + AI SENTIMENT
+HARAM_STOCKS = [
+    "JPM","BAC","C","GS","WFC"
+]
+
+# 📊 STOCK DATA
 @app.get("/")
 def data():
     d={}
-    total_score=0
-    count=0
-
     for s in STOCKS:
         t=yf.Ticker(s)
         h=t.history(period="2d")
@@ -39,104 +42,27 @@ def data():
 
             change=((l-p)/p)*100
 
-            score=0
-            if change>1: score=1
-            elif change<-1: score=-1
-
-            total_score+=score
-            count+=1
-
-            signal="BUY" if change>0 else "SELL"
+            signal="HOLD"
+            if change>1: signal="BUY"
+            elif change<-1: signal="SELL"
 
             d[s]={
                 "price":round(float(l),2),
                 "change":round(float(change),2),
                 "signal":signal
             }
-
-    sentiment="NEUTRAL"
-    confidence=50
-
-    if count>0:
-        avg=total_score/count
-        confidence=abs(avg)*100
-
-        if avg>0:
-            sentiment="📈 BULLISH"
-        elif avg<0:
-            sentiment="📉 BEARISH"
-
-    return {
-        "stocks":d,
-        "sentiment":sentiment,
-        "confidence":round(confidence,1)
-    }
+    return d
 
 
-# 🌍 NEWS (CAUSE + EFFECT)
-@app.get("/news")
-def news():
-    url="https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=6&apiKey=4a92eeeadf4a49d292083c9fae812c47"
-    res=requests.get(url).json()
-
-    out=[]
-
-    for a in res.get("articles",[]):
-        t=a["title"].lower()
-
-        reason="General update"
-        effect="Market stable"
-
-        if "war" in t:
-            reason="War tension"
-            effect="📉 Crash risk"
-        elif "trump" in t:
-            reason="Political move"
-            effect="⚡ Volatility"
-        elif "fed" in t:
-            reason="Interest rate"
-            effect="📉 Stocks fall"
-        elif "profit" in t:
-            reason="Company earnings"
-            effect="📈 Bullish"
-
-        out.append({
-            "title":a["title"][:70],
-            "reason":reason,
-            "effect":effect
-        })
-
-    return out
-
-
-# 🐦 TWEETS
-@app.get("/tweets")
-def tweets():
-    return [
-        {
-            "text":"🚨 Trump speech affecting markets",
-            "impact":"⚡ VOLATILITY",
-            "link":"https://x.com/realDonaldTrump"
-        },
-        {
-            "text":"⚔️ War news impacting oil + stocks",
-            "impact":"📉 BEARISH",
-            "link":"https://www.wsj.com"
-        },
-        {
-            "text":"📊 Fed decision moving tech stocks",
-            "impact":"⚡ SPIKE",
-            "link":"https://www.marketwatch.com"
-        }
-    ]
-
-
-# 🕌 HALAL CHECK
+# 🕌 HALAL CHECK (ACCURATE LIST)
 @app.get("/halal/{symbol}")
 def halal(symbol:str):
     s=symbol.upper()
 
-    if s in HALAL:
+    if s in HALAL_STOCKS:
         return {"status":"✅ HALAL"}
+
+    if s in HARAM_STOCKS:
+        return {"status":"❌ HARAM"}
 
     return {"status":"❌ HARAM"}
