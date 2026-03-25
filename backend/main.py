@@ -20,21 +20,20 @@ STOCKS = [
     "BTC-USD","ETH-USD","JPM","BAC","C","GS"
 ]
 
-# 🔐 ZOYA CONFIG
+# 🔐 ZOYA
 ZOYA_API_KEY = "sandbox-48a6a43f-dcdc-48e2-86b1-f113ebaf8d25"
 ZOYA_URL = "https://sandbox-api.zoya.finance/graphql"
 
 cache = {}
 cache_time = 0
 
-# ⚡ STOCK CACHE
-def get_stocks():
+def get_data():
     global cache, cache_time
 
     if time.time() - cache_time < 10:
         return cache
 
-    data = {}
+    d = {}
 
     for s in STOCKS:
         try:
@@ -48,56 +47,54 @@ def get_stocks():
                 change = ((l - p) / p) * 100
 
                 signal = "HOLD"
-                if change > 1:
-                    signal = "BUY"
-                elif change < -1:
-                    signal = "SELL"
+                if change > 1: signal = "BUY"
+                elif change < -1: signal = "SELL"
 
-                data[s] = {
-                    "price": round(float(l), 2),
-                    "change": round(float(change), 2),
+                d[s] = {
+                    "price": round(float(l),2),
+                    "change": round(float(change),2),
                     "signal": signal
                 }
         except:
             continue
 
-    cache = data
+    cache = d
     cache_time = time.time()
-    return data
+    return d
 
 
 @app.get("/stocks")
 def stocks():
-    return get_stocks()
+    return get_data()
 
 
-# 🕌 ZOYA HALAL CHECK (REAL)
 @app.get("/halal/{symbol}")
 def halal(symbol: str):
+    sym = symbol.upper().replace("-USD","")
+
     query = {
         "query": """
-        query Screening($ticker: String!) {
+        query ($ticker: String!) {
           screening(ticker: $ticker) {
             shariahCompliant
-            status
           }
         }
         """,
-        "variables": {"ticker": symbol.upper()}
+        "variables": {"ticker": sym}
     }
 
     headers = {
-        "Authorization": f"Bearer {ZOYA_API_KEY}",
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {ZOYA_API_KEY}"
     }
 
     try:
         res = requests.post(ZOYA_URL, json=query, headers=headers)
         data = res.json()
 
-        screening = data["data"]["screening"]
+        if "data" not in data:
+            return {"status": "NOT FOUND"}
 
-        if screening["shariahCompliant"]:
+        if data["data"]["screening"]["shariahCompliant"]:
             return {"status": "HALAL"}
 
         return {"status": "HARAM"}
@@ -106,20 +103,9 @@ def halal(symbol: str):
         return {"status": "ERROR"}
 
 
-# 📰 NEWS (KEEP SIMPLE FOR NOW)
 @app.get("/news")
 def news():
     return [
-        {
-            "title": "Tesla rallies",
-            "cause": "EV demand surge",
-            "effect": "Bullish sentiment",
-            "impact": "HIGH"
-        },
-        {
-            "title": "Bitcoin spike",
-            "cause": "ETF inflow",
-            "effect": "Market bullish",
-            "impact": "HIGH"
-        }
+        {"title":"Tesla rally","cause":"EV demand","effect":"Bullish","impact":"HIGH"},
+        {"title":"Bitcoin spike","cause":"ETF","effect":"Market up","impact":"HIGH"}
     ]
