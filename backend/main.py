@@ -1,4 +1,5 @@
 import yfinance as yf
+import requests
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import time
@@ -19,23 +20,21 @@ STOCKS = [
     "BTC-USD","ETH-USD","JPM","BAC","C","GS"
 ]
 
-# 🕌 STRUCTURED HALAL DATABASE
-HALAL_DB = {
-    "HALAL": ["AAPL","MSFT","NVDA","TSLA","GOOGL","AMD","META","INTC"],
-    "HARAM": ["JPM","BAC","C","GS","WFC"]
-}
+# 🔐 ZOYA CONFIG
+ZOYA_API_KEY = "sandbox-48a6a43f-dcdc-48e2-86b1-f113ebaf8d25"
+ZOYA_URL = "https://sandbox-api.zoya.finance/graphql"
 
-cache_data = {}
+cache = {}
 cache_time = 0
 
-# ⚡ SMART CACHE SYSTEM (10 sec)
-def get_stock_data():
-    global cache_data, cache_time
+# ⚡ STOCK CACHE
+def get_stocks():
+    global cache, cache_time
 
     if time.time() - cache_time < 10:
-        return cache_data
+        return cache
 
-    d = {}
+    data = {}
 
     for s in STOCKS:
         try:
@@ -54,7 +53,7 @@ def get_stock_data():
                 elif change < -1:
                     signal = "SELL"
 
-                d[s] = {
+                data[s] = {
                     "price": round(float(l), 2),
                     "change": round(float(change), 2),
                     "signal": signal
@@ -62,50 +61,65 @@ def get_stock_data():
         except:
             continue
 
-    cache_data = d
+    cache = data
     cache_time = time.time()
-    return d
+    return data
 
 
-@app.get("/")
-def data():
-    return get_stock_data()
+@app.get("/stocks")
+def stocks():
+    return get_stocks()
 
 
-# 🕌 HALAL CHECK (STRICT SYSTEM)
+# 🕌 ZOYA HALAL CHECK (REAL)
 @app.get("/halal/{symbol}")
 def halal(symbol: str):
-    s = symbol.upper()
+    query = {
+        "query": """
+        query Screening($ticker: String!) {
+          screening(ticker: $ticker) {
+            shariahCompliant
+            status
+          }
+        }
+        """,
+        "variables": {"ticker": symbol.upper()}
+    }
 
-    if s in HALAL_DB["HALAL"]:
-        return {"status": "HALAL"}
+    headers = {
+        "Authorization": f"Bearer {ZOYA_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-    if s in HALAL_DB["HARAM"]:
+    try:
+        res = requests.post(ZOYA_URL, json=query, headers=headers)
+        data = res.json()
+
+        screening = data["data"]["screening"]
+
+        if screening["shariahCompliant"]:
+            return {"status": "HALAL"}
+
         return {"status": "HARAM"}
 
-    return {"status": "UNKNOWN"}
+    except:
+        return {"status": "ERROR"}
 
 
-# 🕌 FULL LIST
-@app.get("/halal-list")
-def halal_list():
-    return HALAL_DB
-
-
-# 📰 MARKET NEWS (MOCK → upgrade later with API)
+# 📰 NEWS (KEEP SIMPLE FOR NOW)
 @app.get("/news")
 def news():
     return [
         {
-            "title": "Apple earnings beat expectations",
-            "cause": "Strong iPhone sales",
-            "effect": "Bullish momentum",
-            "summary": "Apple reported higher-than-expected revenue."
+            "title": "Tesla rallies",
+            "cause": "EV demand surge",
+            "effect": "Bullish sentiment",
+            "impact": "HIGH"
         },
         {
-            "title": "Bitcoin surges",
-            "cause": "ETF inflows",
+            "title": "Bitcoin spike",
+            "cause": "ETF inflow",
             "effect": "Market bullish",
-            "summary": "Crypto market seeing strong inflows."
+            "impact": "HIGH"
         }
     ]
