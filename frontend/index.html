@@ -1,14 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>StockPulse Pro</title>
+<title>StockPulse PRO</title>
 
 <style>
-body{background:#0f172a;color:white;font-family:Arial;text-align:center;}
-.card{background:#1e293b;padding:15px;border-radius:10px;width:180px;}
-#stocks{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
-button,input{padding:8px;margin:5px;border-radius:5px;border:none;}
-#alertBar{background:#111827;padding:10px;margin-top:10px;}
+body{
+  background:#020617;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+/* GLOW CARDS */
+.card{
+  background:rgba(30,41,59,0.6);
+  backdrop-filter:blur(10px);
+  padding:20px;
+  border-radius:12px;
+  width:180px;
+  transition:0.3s;
+  box-shadow:0 0 10px rgba(0,255,255,0.1);
+}
+
+.card:hover{
+  transform:scale(1.08);
+  box-shadow:0 0 20px cyan;
+}
+
+#stocks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+  justify-content:center;
+}
+
+/* INPUT */
+input{
+  padding:10px;
+  border-radius:6px;
+  border:none;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  background:#0ea5e9;
+  color:white;
+  cursor:pointer;
+}
+
+/* NEWS CARD */
+.news{
+  background:#0f172a;
+  margin:10px;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 0 15px rgba(255,255,255,0.05);
+  animation:fade 0.5s ease;
+}
+
+@keyframes fade{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1;}
+}
+
 </style>
 </head>
 
@@ -17,76 +73,63 @@ button,input{padding:8px;margin:5px;border-radius:5px;border:none;}
 <h1>📊 StockPulse PRO</h1>
 <p>by BADHON EDITZX</p>
 
-<div id="alertBar">Loading alerts...</div>
-
-<input id="searchSymbol" placeholder="AAPL">
-<button onclick="searchChart()">Search</button>
-<button onclick="addWatch()">⭐ Add</button>
+<input id="search" placeholder="AAPL">
+<button onclick="search()">Search</button>
 
 <h2>📌 Watchlist</h2>
-<div id="watchlist"></div>
+<div id="watch"></div>
 
 <div id="stocks"></div>
 
+<!-- FIXED CHART -->
+<div style="margin-top:30px;">
 <iframe id="chart" width="90%" height="400"></iframe>
+</div>
 
 <div id="news"></div>
 
-<!-- HALAL SECTION (BOTTOM) -->
+<!-- HALAL -->
 <h2>🕌 Halal Checker</h2>
-<input id="halalInput">
+<input id="halal">
 <button onclick="checkHalal()">Check</button>
-<p id="halalResult"></p>
+<p id="result"></p>
 
 <script>
 const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-// SEARCH FIX
-function searchChart(symbol){
-let s = symbol || document.getElementById("searchSymbol").value;
-if(!s) return;
+/* CHART FIX */
+function search(s){
+let sym=s||document.getElementById("search").value;
+sym=sym.toUpperCase();
 
-s=s.toUpperCase();
-let full = s.includes("BTC")?"BINANCE:"+s:"NASDAQ:"+s;
+let full=sym.includes("BTC")?"BINANCE:"+sym:"NASDAQ:"+sym;
 
-document.getElementById("chart").src =
-`https://s.tradingview.com/widgetembed/?symbol=${full}&theme=dark`;
+document.getElementById("chart").src=
+`https://s.tradingview.com/widgetembed/?symbol=${full}&interval=1&theme=dark`;
 }
 
-// WATCHLIST FIX
-function addWatch(){
-let s=document.getElementById("searchSymbol").value.toUpperCase();
+/* WATCH FIX */
+function add(s){
 let list=JSON.parse(localStorage.getItem("w"))||[];
 if(!list.includes(s)) list.push(s);
 localStorage.setItem("w",JSON.stringify(list));
-renderWatch();
+render();
 }
 
-function renderWatch(){
+function render(){
 let list=JSON.parse(localStorage.getItem("w"))||[];
-let c=document.getElementById("watchlist");
+let c=document.getElementById("watch");
 c.innerHTML="";
 
 list.forEach(s=>{
 let b=document.createElement("button");
 b.innerText=s;
-b.onclick=()=>searchChart(s);
+b.onclick=()=>search(s);
 c.appendChild(b);
 });
 }
 
-// ALERT
-function alerts(data){
-let arr=[];
-Object.keys(data).forEach(s=>{
-if(data[s].change>2) arr.push("🚀 "+s);
-if(data[s].change<-2) arr.push("⚠️ "+s);
-});
-document.getElementById("alertBar").innerText =
-arr.join(" | ")||"No alerts";
-}
-
-// DATA
+/* DATA */
 function load(){
 fetch(API).then(r=>r.json()).then(d=>{
 let c=document.getElementById("stocks");
@@ -94,6 +137,7 @@ c.innerHTML="";
 
 Object.keys(d).forEach(s=>{
 let i=d[s];
+
 let div=document.createElement("div");
 div.className="card";
 
@@ -102,31 +146,27 @@ div.innerHTML=`
 <p>$${i.price}</p>
 <p>${i.change}%</p>
 <p>${i.signal}</p>
-<p>${i.prediction}</p>
-<p>${i.confidence}%</p>
-<p>${i.volatility}</p>
+<button onclick="add('${s}')">⭐</button>
 `;
 
 c.appendChild(div);
 });
-
-alerts(d);
 });
 }
 
-// NEWS UPGRADE
-function loadNews(){
+/* PREMIUM NEWS */
+function news(){
 fetch(API+"news").then(r=>r.json()).then(d=>{
 let c=document.getElementById("news");
-c.innerHTML="<h2>🌍 Market Intelligence</h2>";
+c.innerHTML="<h2>🌍 Market Impact</h2>";
 
 d.forEach(n=>{
 let div=document.createElement("div");
+div.className="news";
 
 div.innerHTML=`
-<p><b>${n.impact}</b></p>
-<p>Reason: ${n.reason}</p>
-<p>Possible Effect: ${n.effect}</p>
+<p><b>${n.effect}</b></p>
+<p>${n.title}</p>
 `;
 
 c.appendChild(div);
@@ -134,20 +174,20 @@ c.appendChild(div);
 });
 }
 
-// HALAL FIX
+/* HALAL */
 function checkHalal(){
-let s=document.getElementById("halalInput").value;
+let s=document.getElementById("halal").value;
 fetch(API+"halal/"+s)
 .then(r=>r.json())
 .then(d=>{
-document.getElementById("halalResult").innerText=d.status;
+document.getElementById("result").innerText=d.status;
 });
 }
 
-// INIT
-renderWatch();
+/* INIT */
+render();
 load();
-loadNews();
+news();
 setInterval(load,5000);
 </script>
 
