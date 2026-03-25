@@ -19,7 +19,10 @@ STOCKS = [
     "BTC-USD", "ETH-USD"
 ]
 
-# 📊 MARKET + AI SIGNAL ENGINE
+# 🕌 HALAL STOCK LIST (basic)
+HALAL_STOCKS = ["AAPL", "MSFT", "NVDA", "TSLA", "GOOGL"]
+
+# 📊 MARKET + AI ENGINE
 @app.get("/")
 def get_data():
     data = {}
@@ -34,7 +37,6 @@ def get_data():
 
             percent = ((latest - previous) / previous) * 100
 
-            # 🔥 SIGNAL
             signal = "HOLD"
             if percent > 1.5:
                 signal = "STRONG BUY 🚀"
@@ -45,15 +47,9 @@ def get_data():
             elif percent < -0.5:
                 signal = "SELL"
 
-            # 🧠 AI PREDICTION (SIMULATED)
             confidence = min(abs(percent) * 20, 95)
 
-            if percent > 0:
-                prediction = "📈 Bullish"
-            elif percent < 0:
-                prediction = "📉 Bearish"
-            else:
-                prediction = "⚖️ Neutral"
+            prediction = "📈 Bullish" if percent > 0 else "📉 Bearish"
 
             volatility = "LOW"
             if abs(percent) > 2:
@@ -73,7 +69,7 @@ def get_data():
     return data
 
 
-# 🌍 NEWS + SENTIMENT ENGINE
+# 🌍 NEWS ENGINE
 @app.get("/news")
 def get_news():
     url = "https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=8&apiKey=4a92eeeadf4a49d292083c9fae812c47"
@@ -93,15 +89,12 @@ def get_news():
         if "war" in lower or "conflict" in lower:
             impact = "🔴 HIGH"
             direction = "📉 BEARISH"
-
         elif "trump" in lower:
             impact = "🟠 HIGH"
             direction = "⚡ VOLATILE"
-
         elif "fed" in lower or "interest rate" in lower:
             impact = "🔴 HIGH"
             direction = "📉 BEARISH"
-
         elif "growth" in lower or "profit" in lower:
             impact = "🟢 MEDIUM"
             direction = "📈 BULLISH"
@@ -109,7 +102,6 @@ def get_news():
         summary = title[:80] + "..."
 
         news.append({
-            "title": title,
             "summary": summary,
             "impact": impact,
             "direction": direction,
@@ -117,3 +109,14 @@ def get_news():
         })
 
     return news
+
+
+# 🕌 HALAL CHECK
+@app.get("/halal/{symbol}")
+def halal_check(symbol: str):
+    symbol = symbol.upper()
+
+    if symbol in HALAL_STOCKS:
+        return {"symbol": symbol, "status": "✅ Halal"}
+    else:
+        return {"symbol": symbol, "status": "⚠️ Check Manually"}
