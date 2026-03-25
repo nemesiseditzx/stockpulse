@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>StockPulse PRO - News</title>
+<title>StockPulse PRO - Market Intelligence</title>
 
 <style>
 body{
@@ -17,10 +17,12 @@ h1{
   padding:20px;
 }
 
-/* NEWS CONTAINER */
+/* CONTAINER */
 #news{
   max-width:800px;
   margin:auto;
+  height:90vh;
+  overflow-y:auto;
 }
 
 /* CARD */
@@ -34,40 +36,57 @@ h1{
   transform:translateY(20px);
 }
 
-/* HOVER EFFECT */
+/* HOVER */
 .card:hover{
-  transform:scale(1.03);
+  transform:scale(1.02);
   box-shadow:0 0 15px rgba(0,255,255,0.3);
 }
 
-/* FADE IN ANIMATION */
+/* SHOW ANIMATION */
 .show{
   opacity:1;
   transform:translateY(0);
 }
 
-/* LINK */
-a{
-  color:cyan;
-  text-decoration:none;
-}
+/* IMPACT COLORS */
+.high{border-left:5px solid red;}
+.medium{border-left:5px solid orange;}
+.low{border-left:5px solid lime;}
 
-a:hover{
-  text-decoration:underline;
-}
+a{color:cyan;}
 </style>
 
 </head>
 
 <body>
 
-<h1>📰 Market News</h1>
+<h1>🧠 Market Intelligence Feed</h1>
 
 <div id="news"></div>
 
 <script>
 const API = "https://stockpulsebadhoneditzx.up.railway.app/news";
 
+/* 🔥 AI LOGIC */
+function analyze(news){
+  let text = (news.title + " " + news.summary).toLowerCase();
+
+  let impact = "low";
+  let effect = "Neutral market movement";
+
+  if(text.includes("war") || text.includes("inflation") || text.includes("rate")){
+    impact = "high";
+    effect = "High volatility expected";
+  }
+  else if(text.includes("growth") || text.includes("earnings")){
+    impact = "medium";
+    effect = "Moderate bullish sentiment";
+  }
+
+  return {impact, effect};
+}
+
+/* 🚀 LOAD NEWS */
 function loadNews(){
   fetch(API)
   .then(r => r.json())
@@ -75,33 +94,39 @@ function loadNews(){
     let n = document.getElementById("news");
     n.innerHTML = "";
 
-    d.forEach((i, index) => {
+    d.forEach((i,index) => {
+
+      let ai = analyze(i);
+
       let div = document.createElement("div");
-      div.className = "card";
+      div.className = "card " + ai.impact;
 
       div.innerHTML = `
         <h3>${i.title}</h3>
+
+        <p><b>🧠 Analysis:</b> ${ai.effect}</p>
+
         <p>${i.summary}</p>
+
+        <p><b>📊 Impact:</b> ${ai.impact.toUpperCase()}</p>
+
         <a href="${i.url}" target="_blank">🔗 Read more</a>
       `;
 
       n.appendChild(div);
 
-      // animation delay
-      setTimeout(() => {
+      setTimeout(()=>{
         div.classList.add("show");
-      }, index * 150);
+      }, index * 120);
     });
-  })
-  .catch(() => {
-    document.getElementById("news").innerHTML = "Error loading news";
+
   });
 }
 
-// AUTO REFRESH (every 60 sec)
-setInterval(loadNews, 60000);
+/* AUTO REFRESH */
+setInterval(loadNews, 30000);
 
-// INIT
+/* INIT */
 loadNews();
 </script>
 
