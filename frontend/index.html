@@ -4,129 +4,56 @@
 <title>StockPulse PRO</title>
 
 <style>
-body{
-  margin:0;
-  background:#020617;
-  color:white;
-  font-family:sans-serif;
-}
-
-/* NAVBAR */
-.nav{
-  display:flex;
-  justify-content:space-between;
-  padding:15px 30px;
-  background:#020617;
-  border-bottom:1px solid #111;
-}
-
-/* HERO CHART */
-#chart{
-  height:600px;
-  width:100%;
-}
-
-/* GRID */
-#stocks{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:20px;
-  padding:20px;
-}
-
-/* CARD */
-.card{
-  background:#0f172a;
-  padding:15px;
-  border-radius:12px;
-  transition:0.3s;
-}
-
-.card:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 20px cyan;
-}
-
-/* SECTION */
-.section{
-  padding:20px;
-}
-
-/* NEWS */
-.news{
-  display:flex;
-  gap:20px;
-  overflow-x:auto;
-}
-
-.news-card{
-  min-width:250px;
-  background:#111;
-  padding:15px;
-  border-radius:10px;
-}
+body{margin:0;display:flex;background:#020617;color:white;font-family:sans-serif}
+.sidebar{width:220px;background:#0f172a;height:100vh;padding:20px}
+.sidebar a{display:block;color:white;padding:10px;text-decoration:none}
+.sidebar a:hover{background:#1e293b}
+.main{flex:1;padding:20px}
+#chart{height:500px}
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<div class="nav">
-<h2>🚀 StockPulse PRO</h2>
+<div class="sidebar">
+<h2>🚀 StockPulse</h2>
+<a href="/">📊 Dashboard</a>
+<a href="/halal">🕌 Halal</a>
+<a href="/news">📰 News</a>
+<a href="/signals">📈 Signals</a>
+<a href="/alerts">🔔 Alerts</a>
+</div>
 
-<div>
+<div class="main">
+
+<h1>Dashboard</h1>
+
 <input id="search" placeholder="AAPL">
 <button onclick="search()">Search</button>
-</div>
-</div>
 
-<!-- BIG CHART -->
 <div id="chart"></div>
 
-<!-- STOCK GRID -->
 <div id="stocks"></div>
 
-<!-- HALAL -->
-<div class="section">
-<h2>🕌 Halal Checker</h2>
-<input id="halalInput">
-<button onclick="checkHalal()">Check</button>
-<p id="halalResult"></p>
-</div>
-
-<!-- NEWS -->
-<div class="section">
-<h2>📰 Market Intelligence</h2>
-<div class="news" id="news"></div>
 </div>
 
 <script>
 const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-/* 🔥 BIG CHART FIX */
 function search(symbol){
-let s = symbol || document.getElementById("search").value;
-if(!s) return;
+let s=symbol||document.getElementById("search").value;
+if(!s)return;
 
-s=s.toUpperCase();
-
-let container=document.getElementById("chart");
-container.innerHTML="";
+let c=document.getElementById("chart");
+c.innerHTML="";
 
 let script=document.createElement("script");
 script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-script.async=true;
+script.innerHTML=JSON.stringify({"symbol":"NASDAQ:"+s,"theme":"dark","autosize":true});
 
-script.innerHTML=JSON.stringify({
-"symbol":"NASDAQ:"+s,
-"theme":"dark",
-"autosize":true
-});
-
-container.appendChild(script);
+c.appendChild(script);
 }
 
-/* LOAD STOCKS */
 function load(){
 fetch(API+"stocks")
 .then(r=>r.json())
@@ -138,59 +65,14 @@ Object.keys(d).forEach(s=>{
 let i=d[s];
 
 let div=document.createElement("div");
-div.className="card";
-
-div.innerHTML=`
-<h3 onclick="search('${s}')">${s}</h3>
-<p>$${i.price}</p>
-<p>${i.change}%</p>
-<p>${i.signal}</p>
-`;
-
+div.innerHTML=`${s} - $${i.price} (${i.signal})`;
 c.appendChild(div);
 });
 });
 }
 
-/* HALAL (ZOYA) */
-function checkHalal(){
-let s=document.getElementById("halalInput").value;
-
-fetch(API+"halal/"+s)
-.then(r=>r.json())
-.then(d=>{
-document.getElementById("halalResult").innerText=d.status;
-});
-}
-
-/* NEWS */
-function loadNews(){
-fetch(API+"news")
-.then(r=>r.json())
-.then(data=>{
-let n=document.getElementById("news");
-
-data.forEach(i=>{
-let div=document.createElement("div");
-div.className="news-card";
-
-div.innerHTML=`
-<h3>${i.title}</h3>
-<p>Cause: ${i.cause}</p>
-<p>Effect: ${i.effect}</p>
-<p>Impact: ${i.impact}</p>
-`;
-
-n.appendChild(div);
-});
-});
-}
-
-/* INIT */
 search("AAPL");
 load();
-loadNews();
-setInterval(load,5000);
 </script>
 
 </body>
