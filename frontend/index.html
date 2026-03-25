@@ -218,18 +218,24 @@ function loadNews() {
     .then(res => res.json())
     .then(data => {
       const container = document.getElementById("news");
-      container.innerHTML = "<h2>🌍 Market Impact News</h2>";
+      container.innerHTML = "<h2>🌍 Market Intelligence</h2>";
 
       data.forEach(item => {
         const div = document.createElement("div");
 
+        div.style.margin = "15px";
+        div.style.padding = "10px";
+        div.style.background = "#1e293b";
+        div.style.borderRadius = "8px";
+
         div.innerHTML = `
-          <p>
-            ${item.impact} —
-            <a href="${item.url}" target="_blank" style="color:white">
-              ${item.title}
-            </a>
+          <p style="font-weight:bold;">
+            ${item.impact} | ${item.direction}
           </p>
+          <p>${item.summary}</p>
+          <a href="${item.url}" target="_blank" style="color:lightblue;">
+            Read full
+          </a>
         `;
 
         container.appendChild(div);
