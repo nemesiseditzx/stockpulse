@@ -1,7 +1,18 @@
+FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META"]
+FALLBACK_HARAM = ["JPM","BAC","C","GS"]
+
 @app.get("/halal/{symbol}")
 def halal(symbol: str):
     sym = symbol.upper().replace("-USD", "")
 
+    # 🔥 fallback first (fast + reliable)
+    if sym in FALLBACK_HALAL:
+        return {"status": "HALAL"}
+
+    if sym in FALLBACK_HARAM:
+        return {"status": "HARAM"}
+
+    # 🔥 Zoya check
     query = {
         "query": """
         query ($ticker: String!) {
@@ -21,8 +32,6 @@ def halal(symbol: str):
         res = requests.post(ZOYA_URL, json=query, headers=headers)
         data = res.json()
 
-        print("Zoya Response:", data)  # 👈 ADD THIS
-
         if "data" not in data or data["data"]["screening"] is None:
             return {"status": "UNKNOWN"}
 
@@ -31,6 +40,5 @@ def halal(symbol: str):
 
         return {"status": "HARAM"}
 
-    except Exception as e:
-        print("ERROR:", e)
-        return {"status": "ERROR"}
+    except:
+        return {"status": "UNKNOWN"}
