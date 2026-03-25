@@ -41,6 +41,15 @@
       margin: 5px;
     }
 
+    #alertBar {
+      margin-top:15px;
+      padding:10px;
+      background:#111827;
+      border-radius:8px;
+      font-weight:bold;
+      color:#facc15;
+    }
+
     .footer {
       margin-top: 40px;
       opacity: 0.6;
@@ -52,6 +61,9 @@
 
 <h1>📊 StockPulse PRO</h1>
 <p>by BADHON EDITZX</p>
+
+<!-- 🔔 ALERT BAR -->
+<div id="alertBar">Loading alerts...</div>
 
 <!-- SEARCH -->
 <div>
@@ -133,6 +145,7 @@ function renderWatchlist() {
       : "NASDAQ:" + symbol;
 
     btn.innerText = symbol;
+
     btn.onclick = () => {
       document.getElementById("tvChart").src =
         `https://s.tradingview.com/widgetembed/?symbol=${fullSymbol}&interval=1&theme=dark`;
@@ -140,6 +153,26 @@ function renderWatchlist() {
 
     container.appendChild(btn);
   });
+}
+
+// ALERT ENGINE
+function updateAlerts(data) {
+  let alerts = [];
+
+  Object.keys(data).forEach(symbol => {
+    const item = data[symbol];
+
+    if (item.change > 2) {
+      alerts.push(`🚀 ${symbol} pumping (${item.change}%)`);
+    }
+
+    if (item.change < -2) {
+      alerts.push(`⚠️ ${symbol} dumping (${item.change}%)`);
+    }
+  });
+
+  document.getElementById("alertBar").innerText =
+    alerts.length ? alerts.join(" | ") : "No major alerts";
 }
 
 // STOCK DATA
@@ -154,6 +187,10 @@ function loadData() {
         const item = data[symbol];
         const color = item.change >= 0 ? "lime" : "red";
 
+        const signalColor =
+          item.signal.includes("BUY") ? "lime" :
+          item.signal.includes("SELL") ? "red" : "gray";
+
         const div = document.createElement("div");
         div.className = "card";
 
@@ -163,11 +200,15 @@ function loadData() {
           <p style="color:${color}">
             ${item.change > 0 ? "+" : ""}${item.change}%
           </p>
-          <p style="font-weight:bold;">${item.signal}</p>
+          <p style="font-weight:bold; color:${signalColor}">
+            ${item.signal}
+          </p>
         `;
 
         container.appendChild(div);
       });
+
+      updateAlerts(data);
     });
 }
 
