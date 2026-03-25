@@ -5,56 +5,80 @@
 
 <style>
 body{
-  background:#020617;
+  background: radial-gradient(circle at top,#020617,#000);
   color:white;
-  font-family:Arial;
-  text-align:center;
+  font-family: 'Segoe UI',sans-serif;
+  margin:0;
 }
 
+h1{
+  text-align:center;
+  margin-top:20px;
+}
+
+/* GRID */
+#stocks{
+  display:grid;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;
+  padding:20px;
+}
+
+/* PREMIUM CARD */
 .card{
-  background:#1e293b;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border-radius:15px;
   padding:15px;
-  border-radius:10px;
-  width:180px;
   transition:0.3s;
+  box-shadow:0 0 20px rgba(0,255,255,0.1);
 }
 
 .card:hover{
-  transform:scale(1.05);
+  transform: translateY(-5px) scale(1.03);
+  box-shadow:0 0 25px rgba(0,255,255,0.3);
 }
 
-#stocks{
-  display:flex;
-  flex-wrap:wrap;
-  gap:20px;
-  justify-content:center;
-}
-
-button,input{
-  padding:8px;
-  margin:5px;
-  border-radius:5px;
+/* INPUT */
+input,button{
+  padding:10px;
+  border-radius:8px;
   border:none;
 }
 
+button{
+  background:#00f5ff;
+  cursor:pointer;
+}
+
+/* SECTION */
 .section{
-  margin-top:30px;
+  margin:40px 20px;
+}
+
+/* NEWS */
+.news-card{
+  background:#111;
+  padding:15px;
+  margin:10px;
+  border-radius:10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>📊 StockPulse PRO</h1>
-<p>by BADHON EDITZX</p>
+<h1>🚀 StockPulse PRO</h1>
 
 <!-- SEARCH -->
+<div style="text-align:center;">
 <input id="search" placeholder="AAPL">
 <button onclick="search()">Search</button>
+</div>
 
 <!-- CHART -->
 <div class="section">
-  <iframe id="chart" width="90%" height="400"></iframe>
+<div id="chart"></div>
 </div>
 
 <!-- WATCHLIST -->
@@ -66,66 +90,71 @@ button,input{
 <!-- STOCKS -->
 <div id="stocks"></div>
 
-<!-- HALAL FEATURE (SEPARATE BIG SECTION) -->
+<!-- HALAL -->
 <div class="section">
-<h2>🕌 Halal Stock Checker</h2>
-
-<input id="halalInput" placeholder="Enter stock (AAPL)">
+<h2>🕌 Halal Checker</h2>
+<input id="halalInput">
 <button onclick="checkHalal()">Check</button>
-
 <p id="halalResult"></p>
+</div>
 
+<!-- NEWS -->
+<div class="section">
+<h2>📰 Market Intelligence</h2>
+<div id="news"></div>
 </div>
 
 <script>
 const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-/* ✅ PERFECT CHART FIX */
+/* 🔥 TRADINGVIEW FIX (OFFICIAL WIDGET) */
 function search(symbol){
 let s = symbol || document.getElementById("search").value;
 if(!s) return;
 
 s = s.toUpperCase();
 
-let full = "NASDAQ:"+s;
+let container = document.getElementById("chart");
+container.innerHTML="";
 
-if(s==="BTC" || s==="BTCUSD") full="BINANCE:BTCUSDT";
-if(s==="ETH" || s==="ETHUSD") full="BINANCE:ETHUSDT";
+let script = document.createElement("script");
+script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+script.async=true;
 
-document.getElementById("chart").src =
-"https://s.tradingview.com/widgetembed/?symbol="+full+"&interval=1&theme=dark";
+script.innerHTML = JSON.stringify({
+"symbol": "NASDAQ:"+s,
+"theme": "dark",
+"interval": "1",
+"autosize": true
+});
+
+container.appendChild(script);
 }
 
 /* WATCHLIST */
 function add(s){
 let list=JSON.parse(localStorage.getItem("watch"))||[];
-
 if(!list.includes(s)){
 list.push(s);
 localStorage.setItem("watch",JSON.stringify(list));
 }
-
 renderWatch();
 }
 
 function renderWatch(){
 let list=JSON.parse(localStorage.getItem("watch"))||[];
 let c=document.getElementById("watch");
-
 c.innerHTML="";
 
 list.forEach(s=>{
 let b=document.createElement("button");
-
 b.innerText=s;
-
 b.onclick=()=>search(s);
-
 c.appendChild(b);
 });
 }
 
-/* LOAD STOCKS */
+/* STOCK LOAD */
 function load(){
 fetch(API)
 .then(r=>r.json())
@@ -140,11 +169,11 @@ let div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<h3 onclick="search('${s}')" style="cursor:pointer;">${s}</h3>
+<h3 onclick="search('${s}')">${s}</h3>
 <p>$${i.price}</p>
 <p style="color:${i.change>=0?'lime':'red'}">${i.change}%</p>
 <p>${i.signal}</p>
-<button onclick="add('${s}')">⭐ Add</button>
+<button onclick="add('${s}')">⭐</button>
 `;
 
 c.appendChild(div);
@@ -152,7 +181,7 @@ c.appendChild(div);
 });
 }
 
-/* HALAL CHECK */
+/* HALAL */
 function checkHalal(){
 let s=document.getElementById("halalInput").value;
 
@@ -163,9 +192,34 @@ document.getElementById("halalResult").innerText=d.status;
 });
 }
 
+/* NEWS */
+function loadNews(){
+fetch(API+"news")
+.then(r=>r.json())
+.then(data=>{
+let n=document.getElementById("news");
+n.innerHTML="";
+
+data.forEach(i=>{
+let div=document.createElement("div");
+div.className="news-card";
+
+div.innerHTML=`
+<h3>${i.title}</h3>
+<p><b>Cause:</b> ${i.cause}</p>
+<p><b>Effect:</b> ${i.effect}</p>
+<p>${i.summary}</p>
+`;
+
+n.appendChild(div);
+});
+});
+}
+
 /* INIT */
 renderWatch();
 load();
+loadNews();
 setInterval(load,5000);
 </script>
 
