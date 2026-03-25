@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+# CORS (allow frontend connection)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,13 +14,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 🔥 STOCK + CRYPTO LIST
 STOCKS = [
     "AAPL", "TSLA", "MSFT", "NVDA", "AMZN",
     "META", "GOOGL", "NFLX", "AMD", "INTC",
     "BTC-USD", "ETH-USD"
 ]
 
-# 📊 MARKET + SIGNAL ENGINE
+# 📊 MARKET DATA + SIGNAL ENGINE
 @app.get("/")
 def get_data():
     data = {}
@@ -35,7 +37,7 @@ def get_data():
             change = latest - previous
             percent = (change / previous) * 100
 
-            # 🔥 SMART SIGNAL LOGIC
+            # 🔥 SMART SIGNAL ENGINE
             signal = "HOLD"
 
             if percent > 1.5:
@@ -71,6 +73,7 @@ def get_news():
 
         impact = "🟡 Neutral"
 
+        # 🔥 IMPACT DETECTION LOGIC
         if "war" in title_lower or "conflict" in title_lower:
             impact = "🔴 HIGH IMPACT"
         elif "trump" in title_lower or "fed" in title_lower or "interest rate" in title_lower:
@@ -83,3 +86,10 @@ def get_news():
         })
 
     return news
+
+
+# 🧪 HEALTH CHECK (optional but useful)
+@app.get("/health")
+def health():
+    return {"status": "backend running 🚀"}
+    
