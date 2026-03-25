@@ -19,13 +19,16 @@ STOCKS = [
     "BTC-USD","ETH-USD","JPM","BAC"
 ]
 
-# 🕌 HALAL SYSTEM (STRICT)
 HALAL = ["AAPL","MSFT","NVDA","TSLA","GOOGL","AMD","META"]
 HARAM = ["JPM","BAC","C","GS","WFC"]
 
+# 📊 MARKET + AI SENTIMENT
 @app.get("/")
 def data():
     d={}
+    total_score=0
+    count=0
+
     for s in STOCKS:
         t=yf.Ticker(s)
         h=t.history(period="2d")
@@ -34,23 +37,43 @@ def data():
             l=h["Close"].iloc[-1]
             p=h["Close"].iloc[-2]
 
-            c=((l-p)/p)*100
+            change=((l-p)/p)*100
 
-            signal="HOLD"
-            if c>1.5: signal="STRONG BUY 🚀"
-            elif c>0.5: signal="BUY"
-            elif c<-1.5: signal="STRONG SELL ⚠️"
-            elif c<-0.5: signal="SELL"
+            score=0
+            if change>1: score=1
+            elif change<-1: score=-1
+
+            total_score+=score
+            count+=1
+
+            signal="BUY" if change>0 else "SELL"
 
             d[s]={
                 "price":round(float(l),2),
-                "change":round(float(c),2),
+                "change":round(float(change),2),
                 "signal":signal
             }
-    return d
+
+    sentiment="NEUTRAL"
+    confidence=50
+
+    if count>0:
+        avg=total_score/count
+        confidence=abs(avg)*100
+
+        if avg>0:
+            sentiment="📈 BULLISH"
+        elif avg<0:
+            sentiment="📉 BEARISH"
+
+    return {
+        "stocks":d,
+        "sentiment":sentiment,
+        "confidence":round(confidence,1)
+    }
 
 
-# 🌍 NEWS ENGINE (CAUSE + EFFECT)
+# 🌍 NEWS (CAUSE + EFFECT)
 @app.get("/news")
 def news():
     url="https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=6&apiKey=4a92eeeadf4a49d292083c9fae812c47"
@@ -66,19 +89,16 @@ def news():
 
         if "war" in t:
             reason="War tension"
-            effect="📉 Market crash risk"
-
+            effect="📉 Crash risk"
         elif "trump" in t:
-            reason="Political action"
-            effect="⚡ High volatility"
-
+            reason="Political move"
+            effect="⚡ Volatility"
         elif "fed" in t:
-            reason="Interest rate decision"
-            effect="📉 Stocks drop"
-
+            reason="Interest rate"
+            effect="📉 Stocks fall"
         elif "profit" in t:
-            reason="Strong earnings"
-            effect="📈 Bullish move"
+            reason="Company earnings"
+            effect="📈 Bullish"
 
         out.append({
             "title":a["title"][:70],
@@ -89,22 +109,22 @@ def news():
     return out
 
 
-# 🐦 TWITTER-LIKE FEED (WITH LINKS)
+# 🐦 TWEETS
 @app.get("/tweets")
 def tweets():
     return [
         {
-            "text":"🚨 Trump speech causing market reaction",
+            "text":"🚨 Trump speech affecting markets",
             "impact":"⚡ VOLATILITY",
             "link":"https://x.com/realDonaldTrump"
         },
         {
-            "text":"⚔️ War news shaking oil + stocks",
+            "text":"⚔️ War news impacting oil + stocks",
             "impact":"📉 BEARISH",
             "link":"https://www.wsj.com"
         },
         {
-            "text":"📊 Tech stocks reacting after Fed news",
+            "text":"📊 Fed decision moving tech stocks",
             "impact":"⚡ SPIKE",
             "link":"https://www.marketwatch.com"
         }
