@@ -1,27 +1,36 @@
-<!DOCTYPE html>
-<html>
-<body style="background:#020617;color:white;font-family:sans-serif">
+@app.get("/halal/{symbol}")
+def halal(symbol: str):
+    sym = symbol.upper().replace("-USD", "")
 
-<h1>🕌 Halal Checker</h1>
+    query = {
+        "query": """
+        query ($ticker: String!) {
+          screening(ticker: $ticker) {
+            shariahCompliant
+          }
+        }
+        """,
+        "variables": {"ticker": sym}
+    }
 
-<input id="s" placeholder="AAPL">
-<button onclick="check()">Check</button>
+    headers = {
+        "Authorization": f"Bearer {ZOYA_API_KEY}"
+    }
 
-<h2 id="r"></h2>
+    try:
+        res = requests.post(ZOYA_URL, json=query, headers=headers)
+        data = res.json()
 
-<script>
-const API="https://stockpulsebadhoneditzx.up.railway.app/";
+        print("Zoya Response:", data)  # 👈 ADD THIS
 
-function check(){
-let s=document.getElementById("s").value;
+        if "data" not in data or data["data"]["screening"] is None:
+            return {"status": "UNKNOWN"}
 
-fetch(API+"halal/"+s)
-.then(r=>r.json())
-.then(d=>{
-document.getElementById("r").innerText=d.status;
-});
-}
-</script>
+        if data["data"]["screening"]["shariahCompliant"]:
+            return {"status": "HALAL"}
 
-</body>
-</html>
+        return {"status": "HARAM"}
+
+    except Exception as e:
+        print("ERROR:", e)
+        return {"status": "ERROR"}
