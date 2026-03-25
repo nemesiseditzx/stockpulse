@@ -9,12 +9,13 @@
 <p id="status">Loading...</p>
 
 <script>
-fetch(stockpulsebadhoneditzx.up.railway.app)  .then(res => res.json())
+fetch("https://stockpulsebadhoneditzx.up.railway.app/")
+  .then(res => res.json())
   .then(data => {
     document.getElementById("status").innerText = data.status;
   })
-  .catch(() => {
-    document.getElementById("status").innerText = "Backend not connected yet";
+  .catch((err) => {
+    document.getElementById("status").innerText = "Error connecting backend";
   });
 </script>
 
