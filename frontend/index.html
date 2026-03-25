@@ -5,62 +5,64 @@
 
 <style>
 body{
-  background: radial-gradient(circle at top,#020617,#000);
-  color:white;
-  font-family: 'Segoe UI',sans-serif;
   margin:0;
+  background:#020617;
+  color:white;
+  font-family:sans-serif;
 }
 
-h1{
-  text-align:center;
-  margin-top:20px;
+/* NAVBAR */
+.nav{
+  display:flex;
+  justify-content:space-between;
+  padding:15px 30px;
+  background:#020617;
+  border-bottom:1px solid #111;
+}
+
+/* HERO CHART */
+#chart{
+  height:600px;
+  width:100%;
 }
 
 /* GRID */
 #stocks{
   display:grid;
-  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:20px;
   padding:20px;
 }
 
-/* PREMIUM CARD */
+/* CARD */
 .card{
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
-  border-radius:15px;
+  background:#0f172a;
   padding:15px;
+  border-radius:12px;
   transition:0.3s;
-  box-shadow:0 0 20px rgba(0,255,255,0.1);
 }
 
 .card:hover{
-  transform: translateY(-5px) scale(1.03);
-  box-shadow:0 0 25px rgba(0,255,255,0.3);
-}
-
-/* INPUT */
-input,button{
-  padding:10px;
-  border-radius:8px;
-  border:none;
-}
-
-button{
-  background:#00f5ff;
-  cursor:pointer;
+  transform:scale(1.05);
+  box-shadow:0 0 20px cyan;
 }
 
 /* SECTION */
 .section{
-  margin:40px 20px;
+  padding:20px;
 }
 
 /* NEWS */
+.news{
+  display:flex;
+  gap:20px;
+  overflow-x:auto;
+}
+
 .news-card{
+  min-width:250px;
   background:#111;
   padding:15px;
-  margin:10px;
   border-radius:10px;
 }
 </style>
@@ -68,26 +70,20 @@ button{
 
 <body>
 
-<h1>🚀 StockPulse PRO</h1>
+<!-- NAVBAR -->
+<div class="nav">
+<h2>🚀 StockPulse PRO</h2>
 
-<!-- SEARCH -->
-<div style="text-align:center;">
+<div>
 <input id="search" placeholder="AAPL">
 <button onclick="search()">Search</button>
 </div>
+</div>
 
-<!-- CHART -->
-<div class="section">
+<!-- BIG CHART -->
 <div id="chart"></div>
-</div>
 
-<!-- WATCHLIST -->
-<div class="section">
-<h2>📌 Watchlist</h2>
-<div id="watch"></div>
-</div>
-
-<!-- STOCKS -->
+<!-- STOCK GRID -->
 <div id="stocks"></div>
 
 <!-- HALAL -->
@@ -101,62 +97,38 @@ button{
 <!-- NEWS -->
 <div class="section">
 <h2>📰 Market Intelligence</h2>
-<div id="news"></div>
+<div class="news" id="news"></div>
 </div>
 
 <script>
 const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-/* 🔥 TRADINGVIEW FIX (OFFICIAL WIDGET) */
+/* 🔥 BIG CHART FIX */
 function search(symbol){
 let s = symbol || document.getElementById("search").value;
 if(!s) return;
 
-s = s.toUpperCase();
+s=s.toUpperCase();
 
-let container = document.getElementById("chart");
+let container=document.getElementById("chart");
 container.innerHTML="";
 
-let script = document.createElement("script");
+let script=document.createElement("script");
 script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
 script.async=true;
 
-script.innerHTML = JSON.stringify({
-"symbol": "NASDAQ:"+s,
-"theme": "dark",
-"interval": "1",
-"autosize": true
+script.innerHTML=JSON.stringify({
+"symbol":"NASDAQ:"+s,
+"theme":"dark",
+"autosize":true
 });
 
 container.appendChild(script);
 }
 
-/* WATCHLIST */
-function add(s){
-let list=JSON.parse(localStorage.getItem("watch"))||[];
-if(!list.includes(s)){
-list.push(s);
-localStorage.setItem("watch",JSON.stringify(list));
-}
-renderWatch();
-}
-
-function renderWatch(){
-let list=JSON.parse(localStorage.getItem("watch"))||[];
-let c=document.getElementById("watch");
-c.innerHTML="";
-
-list.forEach(s=>{
-let b=document.createElement("button");
-b.innerText=s;
-b.onclick=()=>search(s);
-c.appendChild(b);
-});
-}
-
-/* STOCK LOAD */
+/* LOAD STOCKS */
 function load(){
-fetch(API)
+fetch(API+"stocks")
 .then(r=>r.json())
 .then(d=>{
 let c=document.getElementById("stocks");
@@ -171,9 +143,8 @@ div.className="card";
 div.innerHTML=`
 <h3 onclick="search('${s}')">${s}</h3>
 <p>$${i.price}</p>
-<p style="color:${i.change>=0?'lime':'red'}">${i.change}%</p>
+<p>${i.change}%</p>
 <p>${i.signal}</p>
-<button onclick="add('${s}')">⭐</button>
 `;
 
 c.appendChild(div);
@@ -181,7 +152,7 @@ c.appendChild(div);
 });
 }
 
-/* HALAL */
+/* HALAL (ZOYA) */
 function checkHalal(){
 let s=document.getElementById("halalInput").value;
 
@@ -198,7 +169,6 @@ fetch(API+"news")
 .then(r=>r.json())
 .then(data=>{
 let n=document.getElementById("news");
-n.innerHTML="";
 
 data.forEach(i=>{
 let div=document.createElement("div");
@@ -206,9 +176,9 @@ div.className="news-card";
 
 div.innerHTML=`
 <h3>${i.title}</h3>
-<p><b>Cause:</b> ${i.cause}</p>
-<p><b>Effect:</b> ${i.effect}</p>
-<p>${i.summary}</p>
+<p>Cause: ${i.cause}</p>
+<p>Effect: ${i.effect}</p>
+<p>Impact: ${i.impact}</p>
 `;
 
 n.appendChild(div);
@@ -217,7 +187,7 @@ n.appendChild(div);
 }
 
 /* INIT */
-renderWatch();
+search("AAPL");
 load();
 loadNews();
 setInterval(load,5000);
