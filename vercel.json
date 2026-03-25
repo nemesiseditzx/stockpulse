@@ -1,0 +1,9 @@
+{
+  "routes": [
+    { "src": "/", "dest": "/frontend/index.html" },
+    { "src": "/halal", "dest": "/frontend/halal.html" },
+    { "src": "/news", "dest": "/frontend/news.html" },
+    { "src": "/signals", "dest": "/frontend/signals.html" },
+    { "src": "/alerts", "dest": "/frontend/alerts.html" }
+  ]
+}
