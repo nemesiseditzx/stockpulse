@@ -7,19 +7,13 @@
 body{background:#020617;color:white;font-family:Arial;text-align:center;}
 
 .card{
-  background:rgba(30,41,59,0.6);
-  backdrop-filter:blur(10px);
-  padding:20px;
-  border-radius:12px;
+  background:#1e293b;
+  padding:15px;
+  border-radius:10px;
   width:180px;
   transition:0.3s;
-  box-shadow:0 0 10px rgba(0,255,255,0.1);
 }
-
-.card:hover{
-  transform:scale(1.08);
-  box-shadow:0 0 20px cyan;
-}
+.card:hover{transform:scale(1.05);}
 
 #stocks{
   display:flex;
@@ -28,19 +22,18 @@ body{background:#020617;color:white;font-family:Arial;text-align:center;}
   justify-content:center;
 }
 
-.news{
+.news,.tweet{
   background:#0f172a;
   margin:10px;
   padding:15px;
   border-radius:10px;
 }
 
-.tweet{
-  background:#111827;
-  margin:10px;
-  padding:10px;
-  border-radius:8px;
-  color:#38bdf8;
+button,input{
+  padding:8px;
+  margin:5px;
+  border-radius:5px;
+  border:none;
 }
 </style>
 </head>
@@ -62,7 +55,7 @@ body{background:#020617;color:white;font-family:Arial;text-align:center;}
 <iframe id="chart" width="90%" height="400"></iframe>
 
 <!-- TWEETS -->
-<h2>🐦 Live Market Feed</h2>
+<h2>🐦 Market Feed</h2>
 <div id="tweets"></div>
 
 <!-- NEWS -->
@@ -80,15 +73,19 @@ const API="https://stockpulsebadhoneditzx.up.railway.app/";
 /* CHART FIX */
 function search(symbol){
 let s=symbol||document.getElementById("search").value;
+if(!s) return;
+
 s=s.toUpperCase();
 
-let full=s.includes("BTC")?"BINANCE:"+s:"NASDAQ:"+s;
+let full="NASDAQ:"+s;
+if(s.includes("BTC")) full="BINANCE:BTCUSDT";
+if(s.includes("ETH")) full="BINANCE:ETHUSDT";
 
-document.getElementById("chart").src=
-`https://s.tradingview.com/widgetembed/?symbol=${full}&interval=1&theme=dark`;
+document.getElementById("chart").src =
+"https://s.tradingview.com/widgetembed/?symbol="+full+"&interval=1&theme=dark";
 }
 
-/* WATCHLIST FIX */
+/* WATCHLIST */
 function add(s){
 let list=JSON.parse(localStorage.getItem("w"))||[];
 if(!list.includes(s)) list.push(s);
@@ -122,7 +119,7 @@ let div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<h3 onclick="search('${s}')" style="cursor:pointer;">${s}</h3>
+<h3 onclick="search('${s}')">${s}</h3>
 <p>$${i.price}</p>
 <p>${i.change}%</p>
 <p>${i.signal}</p>
@@ -147,7 +144,7 @@ div.className="news";
 div.innerHTML=`
 <p><b>${n.effect}</b></p>
 <p>${n.title}</p>
-<p style="opacity:0.7;">Reason: ${n.reason}</p>
+<p style="opacity:0.7;">Cause: ${n.reason}</p>
 `;
 
 c.appendChild(div);
@@ -156,7 +153,7 @@ c.appendChild(div);
 }
 
 /* TWEETS */
-function loadTweets(){
+function tweets(){
 fetch(API+"tweets").then(r=>r.json()).then(d=>{
 let c=document.getElementById("tweets");
 c.innerHTML="";
@@ -164,7 +161,13 @@ c.innerHTML="";
 d.forEach(t=>{
 let div=document.createElement("div");
 div.className="tweet";
-div.innerText=t.text;
+
+div.innerHTML=`
+<p>${t.text}</p>
+<p style="color:orange">${t.impact}</p>
+<a href="${t.link}" target="_blank">View</a>
+`;
+
 c.appendChild(div);
 });
 });
@@ -184,9 +187,10 @@ document.getElementById("result").innerText=d.status;
 render();
 load();
 news();
-loadTweets();
+tweets();
+
 setInterval(load,5000);
-setInterval(loadTweets,5000);
+setInterval(tweets,5000);
 </script>
 
 </body>
