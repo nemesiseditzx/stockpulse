@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import yfinance as yf
 import requests
 import time
+import re
+
+# 🔥 TELEGRAM
+from telethon import TelegramClient
 
 app = FastAPI()
 
@@ -73,71 +77,45 @@ def stocks():
 
 
 # =============================
-# 🕌 HALAL SYSTEM (FIXED)
+# 🕌 HALAL SYSTEM (IMPROVED)
 # =============================
-
-FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META",
-"TSLA","AMZN","ADBE","ORCL","CRM","CSCO",
-"INTU","QCOM","TXN","AVGO","AMAT","LRCX"]
-FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC","AXP"]
-
-# (Optional Zoya – safe placeholder)
-ZOYA_API_KEY = ""
-ZOYA_URL = "https://sandbox-api.zoya.finance/graphql"
-
+FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN"]
+FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC"]
 
 @app.get("/halal/{symbol}")
 def halal(symbol: str):
     sym = symbol.upper().replace("-USD", "")
 
-    # 🔥 fallback (main working system)
     if sym in FALLBACK_HALAL:
         return {"status": "HALAL"}
 
     if sym in FALLBACK_HARAM:
         return {"status": "HARAM"}
 
-    # 🔥 Zoya optional (won't break if empty key)
+    # fallback logic using sector (simple AI)
     try:
-        if ZOYA_API_KEY:
-            query = {
-                "query": """
-                query ($ticker: String!) {
-                  screening(ticker: $ticker) {
-                    shariahCompliant
-                  }
-                }
-                """,
-                "variables": {"ticker": sym}
-            }
+        stock = yf.Ticker(sym)
+        info = stock.info
 
-            headers = {
-                "Authorization": f"Bearer {ZOYA_API_KEY}"
-            }
+        sector = info.get("sector", "").lower()
 
-            res = requests.post(ZOYA_URL, json=query, headers=headers)
-            data = res.json()
+        if any(x in sector for x in ["bank", "finance", "insurance"]):
+            return {"status": "HARAM"}
 
-            if "data" in data and data["data"]["screening"]:
-                if data["data"]["screening"]["shariahCompliant"]:
-                    return {"status": "HALAL"}
-                else:
-                    return {"status": "HARAM"}
+        return {"status": "HALAL"}
 
     except:
-        pass
-
-    return {"status": "DOUBTFUL"}
+        return {"status": "UNKNOWN"}
 
 
 # =============================
-# 📰 NEWS
+# 📰 NEWS (UPGRADED WITH IMAGE)
 # =============================
-import requests
+FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
 @app.get("/news")
 def news():
-    url = f"https://finnhub.io/api/v1/news?category=general&token=d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
+    url = f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_API}"
 
     try:
         res = requests.get(url)
@@ -149,12 +127,67 @@ def news():
             result.append({
                 "title": n.get("headline"),
                 "summary": n.get("summary"),
-                "source": n.get("source"),
-                "url": n.get("url")
+                "image": n.get("image"),  # 🔥 NEW
+                "url": n.get("url"),
+                "source": n.get("source")
             })
 
         return result
 
-    except Exception as e:
-        print("ERROR:", e)
-        return [{"title": "Error loading news"}]
+    except:
+        return []
+
+
+# =============================
+# 📡 TELEGRAM LIVE SIGNALS
+# =============================
+
+api_id = 30062420
+api_hash = "0a408d6c4588a5235a6c194e31c77bcf"
+
+CHANNEL = "buysellalert_ai_bot"  # ⚠️ CHANGE THIS
+
+client = TelegramClient("session", api_id, api_hash)
+
+
+@app.get("/signals-live")
+async def signals_live():
+    await client.start()
+
+    signals = []
+
+    async for msg in client.iter_messages(CHANNEL, limit=10):
+        if msg.text:
+
+            text = msg.text
+
+            symbol = None
+            action = None
+            price = None
+
+            # 🔍 SYMBOL
+            try:
+                symbol = re.search(r'Alert:(\w+)', text).group(1)
+            except:
+                pass
+
+            # 🔍 ACTION
+            if "Buy" in text:
+                action = "BUY"
+            elif "Sell" in text:
+                action = "SELL"
+
+            # 🔍 PRICE
+            try:
+                price = re.search(r'\$(\d+\.?\d*)', text).group(1)
+            except:
+                pass
+
+            signals.append({
+                "symbol": symbol,
+                "action": action,
+                "price": price,
+                "raw": text
+            })
+
+    return signals
