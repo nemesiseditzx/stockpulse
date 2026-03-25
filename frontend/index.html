@@ -24,11 +24,6 @@
       padding: 20px;
       border-radius: 12px;
       width: 180px;
-      transition: 0.3s;
-    }
-
-    .card:hover {
-      transform: scale(1.05);
     }
 
     input {
@@ -69,26 +64,33 @@
 
 <div id="alertBar">Loading alerts...</div>
 
+<!-- SEARCH -->
 <div>
   <input id="searchSymbol" placeholder="AAPL, TSLA, BTCUSDT">
   <button onclick="searchChart()">Search</button>
   <button onclick="addToWatchlist()">⭐ Add</button>
 </div>
 
+<!-- 🕌 HALAL -->
+<h2>🕌 Halal Checker</h2>
+<input id="halalInput" placeholder="Enter stock">
+<button onclick="checkHalal()">Check</button>
+<p id="halalResult"></p>
+
+<!-- WATCHLIST -->
 <h2>📌 Watchlist</h2>
 <div id="watchlist"></div>
 
 <div id="stocks"></div>
 
+<!-- CHART -->
 <div style="margin-top:40px;">
-  <iframe 
-    id="tvChart"
+  <iframe id="tvChart"
     src="https://s.tradingview.com/widgetembed/?symbol=NASDAQ:AAPL&interval=1&theme=dark"
-    width="90%" 
-    height="500">
-  </iframe>
+    width="90%" height="500"></iframe>
 </div>
 
+<!-- NEWS -->
 <div id="news"></div>
 
 <div class="footer">
@@ -100,117 +102,80 @@ const API = "https://stockpulsebadhoneditzx.up.railway.app/";
 
 // SEARCH
 function searchChart() {
-  let symbol = document.getElementById("searchSymbol").value;
-  if (!symbol) return;
-
-  symbol = symbol.toUpperCase();
-
-  if (symbol.includes("BTC") || symbol.includes("ETH")) {
-    symbol = "BINANCE:" + symbol;
-  } else {
-    symbol = "NASDAQ:" + symbol;
-  }
-
+  let s = document.getElementById("searchSymbol").value.toUpperCase();
+  let symbol = s.includes("BTC") ? "BINANCE:"+s : "NASDAQ:"+s;
   document.getElementById("tvChart").src =
-    `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=1&theme=dark`;
+    `https://s.tradingview.com/widgetembed/?symbol=${symbol}&theme=dark`;
 }
 
 // WATCHLIST
 function addToWatchlist() {
-  const input = document.getElementById("searchSymbol").value.toUpperCase();
-  if (!input) return;
-
+  let s = document.getElementById("searchSymbol").value.toUpperCase();
   let list = JSON.parse(localStorage.getItem("watchlist")) || [];
-
-  if (!list.includes(input)) {
-    list.push(input);
-    localStorage.setItem("watchlist", JSON.stringify(list));
-  }
-
+  if (!list.includes(s)) list.push(s);
+  localStorage.setItem("watchlist", JSON.stringify(list));
   renderWatchlist();
 }
 
 function renderWatchlist() {
-  const container = document.getElementById("watchlist");
-  const list = JSON.parse(localStorage.getItem("watchlist")) || [];
-
+  let list = JSON.parse(localStorage.getItem("watchlist")) || [];
+  let container = document.getElementById("watchlist");
   container.innerHTML = "";
 
-  list.forEach(symbol => {
-    const btn = document.createElement("button");
-
-    let fullSymbol = symbol.includes("BTC")
-      ? "BINANCE:" + symbol
-      : "NASDAQ:" + symbol;
-
-    btn.innerText = symbol;
-    btn.onclick = () => {
-      document.getElementById("tvChart").src =
-        `https://s.tradingview.com/widgetembed/?symbol=${fullSymbol}&interval=1&theme=dark`;
-    };
-
+  list.forEach(s => {
+    let btn = document.createElement("button");
+    btn.innerText = s;
+    btn.onclick = () => searchChart(s);
     container.appendChild(btn);
   });
 }
 
-// ALERT SYSTEM
-function updateAlerts(data) {
-  let alerts = [];
-
-  Object.keys(data).forEach(symbol => {
-    const item = data[symbol];
-
-    if (item.change > 2) {
-      alerts.push(`🚀 ${symbol} pumping`);
-    }
-
-    if (item.change < -2) {
-      alerts.push(`⚠️ ${symbol} dumping`);
-    }
-
-    if (item.volatility.includes("HIGH")) {
-      alerts.push(`⚡ ${symbol} high volatility`);
-    }
-  });
-
-  document.getElementById("alertBar").innerText =
-    alerts.length ? alerts.join(" | ") : "No major alerts";
+// HALAL
+function checkHalal() {
+  let s = document.getElementById("halalInput").value;
+  fetch(API + "halal/" + s)
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById("halalResult").innerText =
+        d.symbol + ": " + d.status;
+    });
 }
 
-// STOCK DATA
+// ALERT
+function updateAlerts(data) {
+  let alerts = [];
+  Object.keys(data).forEach(s => {
+    let i = data[s];
+    if (i.change > 2) alerts.push("🚀 "+s);
+    if (i.change < -2) alerts.push("⚠️ "+s);
+  });
+  document.getElementById("alertBar").innerText =
+    alerts.join(" | ") || "No alerts";
+}
+
+// DATA
 function loadData() {
   fetch(API)
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
-      const container = document.getElementById("stocks");
-      container.innerHTML = "";
+      let c = document.getElementById("stocks");
+      c.innerHTML = "";
 
-      Object.keys(data).forEach(symbol => {
-        const item = data[symbol];
-
-        const color = item.change >= 0 ? "lime" : "red";
-
-        const div = document.createElement("div");
+      Object.keys(data).forEach(s => {
+        let i = data[s];
+        let div = document.createElement("div");
         div.className = "card";
 
         div.innerHTML = `
-          <h3>${symbol}</h3>
-          <p>$${item.price}</p>
-
-          <p style="color:${color}">
-            ${item.change > 0 ? "+" : ""}${item.change}%
-          </p>
-
-          <p style="font-weight:bold;">
-            ${item.signal}
-          </p>
-
-          <p>${item.prediction}</p>
-          <p>Confidence: ${item.confidence}%</p>
-          <p>${item.volatility}</p>
+          <h3>${s}</h3>
+          <p>$${i.price}</p>
+          <p>${i.change}%</p>
+          <p>${i.signal}</p>
+          <p>${i.prediction}</p>
+          <p>${i.confidence}%</p>
+          <p>${i.volatility}</p>
         `;
-
-        container.appendChild(div);
+        c.appendChild(div);
       });
 
       updateAlerts(data);
@@ -219,38 +184,27 @@ function loadData() {
 
 // NEWS
 function loadNews() {
-  fetch(API + "news")
-    .then(res => res.json())
-    .then(data => {
-      const container = document.getElementById("news");
-      container.innerHTML = "<h2>🌍 Market Intelligence</h2>";
+  fetch(API+"news")
+    .then(r=>r.json())
+    .then(data=>{
+      let c=document.getElementById("news");
+      c.innerHTML="<h2>🌍 Market News</h2>";
 
-      data.forEach(item => {
-        const div = document.createElement("div");
-
-        div.style.margin = "15px";
-        div.style.padding = "10px";
-        div.style.background = "#1e293b";
-        div.style.borderRadius = "8px";
-
-        div.innerHTML = `
-          <p style="font-weight:bold;">
-            ${item.impact} | ${item.direction}
-          </p>
-          <p>${item.summary}</p>
+      data.forEach(n=>{
+        let div=document.createElement("div");
+        div.innerHTML=`
+          <p>${n.impact} | ${n.direction}</p>
+          <p>${n.summary}</p>
         `;
-
-        container.appendChild(div);
+        c.appendChild(div);
       });
     });
 }
 
-// INIT
 renderWatchlist();
 loadData();
 loadNews();
-
-setInterval(loadData, 5000);
+setInterval(loadData,5000);
 </script>
 
 </body>
