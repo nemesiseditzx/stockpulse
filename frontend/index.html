@@ -4,14 +4,8 @@
 <title>StockPulse PRO</title>
 
 <style>
-body{
-  background:#020617;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-}
+body{background:#020617;color:white;font-family:Arial;text-align:center;}
 
-/* GLOW CARDS */
 .card{
   background:rgba(30,41,59,0.6);
   backdrop-filter:blur(10px);
@@ -34,37 +28,20 @@ body{
   justify-content:center;
 }
 
-/* INPUT */
-input{
-  padding:10px;
-  border-radius:6px;
-  border:none;
-}
-
-button{
-  padding:10px;
-  border:none;
-  border-radius:6px;
-  background:#0ea5e9;
-  color:white;
-  cursor:pointer;
-}
-
-/* NEWS CARD */
 .news{
   background:#0f172a;
   margin:10px;
   padding:15px;
   border-radius:10px;
-  box-shadow:0 0 15px rgba(255,255,255,0.05);
-  animation:fade 0.5s ease;
 }
 
-@keyframes fade{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1;}
+.tweet{
+  background:#111827;
+  margin:10px;
+  padding:10px;
+  border-radius:8px;
+  color:#38bdf8;
 }
-
 </style>
 </head>
 
@@ -81,11 +58,14 @@ button{
 
 <div id="stocks"></div>
 
-<!-- FIXED CHART -->
-<div style="margin-top:30px;">
+<!-- CHART -->
 <iframe id="chart" width="90%" height="400"></iframe>
-</div>
 
+<!-- TWEETS -->
+<h2>🐦 Live Market Feed</h2>
+<div id="tweets"></div>
+
+<!-- NEWS -->
 <div id="news"></div>
 
 <!-- HALAL -->
@@ -98,17 +78,17 @@ button{
 const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
 /* CHART FIX */
-function search(s){
-let sym=s||document.getElementById("search").value;
-sym=sym.toUpperCase();
+function search(symbol){
+let s=symbol||document.getElementById("search").value;
+s=s.toUpperCase();
 
-let full=sym.includes("BTC")?"BINANCE:"+sym:"NASDAQ:"+sym;
+let full=s.includes("BTC")?"BINANCE:"+s:"NASDAQ:"+s;
 
 document.getElementById("chart").src=
 `https://s.tradingview.com/widgetembed/?symbol=${full}&interval=1&theme=dark`;
 }
 
-/* WATCH FIX */
+/* WATCHLIST FIX */
 function add(s){
 let list=JSON.parse(localStorage.getItem("w"))||[];
 if(!list.includes(s)) list.push(s);
@@ -142,7 +122,7 @@ let div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<h3>${s}</h3>
+<h3 onclick="search('${s}')" style="cursor:pointer;">${s}</h3>
 <p>$${i.price}</p>
 <p>${i.change}%</p>
 <p>${i.signal}</p>
@@ -154,11 +134,11 @@ c.appendChild(div);
 });
 }
 
-/* PREMIUM NEWS */
+/* NEWS */
 function news(){
 fetch(API+"news").then(r=>r.json()).then(d=>{
 let c=document.getElementById("news");
-c.innerHTML="<h2>🌍 Market Impact</h2>";
+c.innerHTML="<h2>🌍 Market Intelligence</h2>";
 
 d.forEach(n=>{
 let div=document.createElement("div");
@@ -167,8 +147,24 @@ div.className="news";
 div.innerHTML=`
 <p><b>${n.effect}</b></p>
 <p>${n.title}</p>
+<p style="opacity:0.7;">Reason: ${n.reason}</p>
 `;
 
+c.appendChild(div);
+});
+});
+}
+
+/* TWEETS */
+function loadTweets(){
+fetch(API+"tweets").then(r=>r.json()).then(d=>{
+let c=document.getElementById("tweets");
+c.innerHTML="";
+
+d.forEach(t=>{
+let div=document.createElement("div");
+div.className="tweet";
+div.innerText=t.text;
 c.appendChild(div);
 });
 });
@@ -188,7 +184,9 @@ document.getElementById("result").innerText=d.status;
 render();
 load();
 news();
+loadTweets();
 setInterval(load,5000);
+setInterval(loadTweets,5000);
 </script>
 
 </body>
