@@ -14,109 +14,108 @@ app.add_middleware(
 )
 
 STOCKS = [
-    "AAPL", "TSLA", "MSFT", "NVDA", "AMZN",
-    "META", "GOOGL", "NFLX", "AMD", "INTC",
-    "BTC-USD", "ETH-USD"
+    "AAPL","TSLA","MSFT","NVDA","AMZN",
+    "META","GOOGL","NFLX","AMD","INTC",
+    "BTC-USD","ETH-USD"
 ]
 
-# 🕌 HALAL STOCK LIST (basic)
-HALAL_STOCKS = ["AAPL", "MSFT", "NVDA", "TSLA", "GOOGL"]
+# 🕌 HALAL DATABASE (simple)
+HALAL_STOCKS = ["AAPL","MSFT","NVDA","TSLA","GOOGL","AMD"]
 
-# 📊 MARKET + AI ENGINE
+# 📊 MARKET ENGINE
 @app.get("/")
 def get_data():
     data = {}
 
-    for symbol in STOCKS:
-        ticker = yf.Ticker(symbol)
-        hist = ticker.history(period="2d")
+    for s in STOCKS:
+        t = yf.Ticker(s)
+        h = t.history(period="2d")
 
-        if len(hist) >= 2:
-            latest = hist["Close"].iloc[-1]
-            previous = hist["Close"].iloc[-2]
+        if len(h) >= 2:
+            latest = h["Close"].iloc[-1]
+            prev = h["Close"].iloc[-2]
 
-            percent = ((latest - previous) / previous) * 100
+            change = ((latest - prev) / prev) * 100
 
             signal = "HOLD"
-            if percent > 1.5:
-                signal = "STRONG BUY 🚀"
-            elif percent > 0.5:
-                signal = "BUY"
-            elif percent < -1.5:
-                signal = "STRONG SELL ⚠️"
-            elif percent < -0.5:
-                signal = "SELL"
+            if change > 1.5: signal = "STRONG BUY 🚀"
+            elif change > 0.5: signal = "BUY"
+            elif change < -1.5: signal = "STRONG SELL ⚠️"
+            elif change < -0.5: signal = "SELL"
 
-            confidence = min(abs(percent) * 20, 95)
+            prediction = "📈 Bullish" if change > 0 else "📉 Bearish"
+            confidence = min(abs(change)*20,95)
 
-            prediction = "📈 Bullish" if percent > 0 else "📉 Bearish"
+            vol = "LOW"
+            if abs(change) > 2: vol = "HIGH ⚡"
+            elif abs(change) > 1: vol = "MEDIUM"
 
-            volatility = "LOW"
-            if abs(percent) > 2:
-                volatility = "HIGH ⚡"
-            elif abs(percent) > 1:
-                volatility = "MEDIUM"
-
-            data[symbol] = {
-                "price": round(float(latest), 2),
-                "change": round(float(percent), 2),
+            data[s] = {
+                "price": round(float(latest),2),
+                "change": round(float(change),2),
                 "signal": signal,
                 "prediction": prediction,
-                "confidence": round(confidence, 1),
-                "volatility": volatility
+                "confidence": round(confidence,1),
+                "volatility": vol
             }
 
     return data
 
 
-# 🌍 NEWS ENGINE
+# 🌍 SMART NEWS ENGINE
 @app.get("/news")
-def get_news():
+def news():
     url = "https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=8&apiKey=4a92eeeadf4a49d292083c9fae812c47"
+    res = requests.get(url).json()
 
-    res = requests.get(url)
-    articles = res.json().get("articles", [])
+    out = []
 
-    news = []
+    for a in res.get("articles",[]):
+        title = a["title"].lower()
 
-    for article in articles:
-        title = article["title"]
-        lower = title.lower()
+        impact = "LOW"
+        reason = "General market update"
+        effect = "Minimal movement expected"
 
-        impact = "🟡 LOW"
-        direction = "⚖️ NEUTRAL"
+        if "trump" in title:
+            impact="HIGH"
+            reason="Political statement"
+            effect="Market volatility spike"
 
-        if "war" in lower or "conflict" in lower:
-            impact = "🔴 HIGH"
-            direction = "📉 BEARISH"
-        elif "trump" in lower:
-            impact = "🟠 HIGH"
-            direction = "⚡ VOLATILE"
-        elif "fed" in lower or "interest rate" in lower:
-            impact = "🔴 HIGH"
-            direction = "📉 BEARISH"
-        elif "growth" in lower or "profit" in lower:
-            impact = "🟢 MEDIUM"
-            direction = "📈 BULLISH"
+        elif "war" in title or "conflict" in title:
+            impact="HIGH"
+            reason="Geopolitical tension"
+            effect="Market drop likely"
 
-        summary = title[:80] + "..."
+        elif "fed" in title or "interest rate" in title:
+            impact="HIGH"
+            reason="Interest rate decision"
+            effect="Stocks may fall"
 
-        news.append({
-            "summary": summary,
+        elif "profit" in title or "growth" in title:
+            impact="MEDIUM"
+            reason="Company performance"
+            effect="Bullish movement possible"
+
+        out.append({
+            "title": a["title"],
             "impact": impact,
-            "direction": direction,
-            "url": article["url"]
+            "reason": reason,
+            "effect": effect
         })
 
-    return news
+    return out
 
 
-# 🕌 HALAL CHECK
+# 🕌 HALAL CHECK (FIXED)
 @app.get("/halal/{symbol}")
-def halal_check(symbol: str):
-    symbol = symbol.upper()
+def halal(symbol: str):
+    s = symbol.upper().replace("-USD","")
 
-    if symbol in HALAL_STOCKS:
-        return {"symbol": symbol, "status": "✅ Halal"}
-    else:
-        return {"symbol": symbol, "status": "⚠️ Check Manually"}
+    if s in HALAL_STOCKS:
+        return {"status":"✅ Halal"}
+
+    if s in ["JPM","BAC","C","GS"]:
+        return {"status":"❌ Not Halal"}
+
+    return {"status":"⚠️ Needs Scholar Review"}
