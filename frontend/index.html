@@ -2,6 +2,10 @@
 <html>
 <head>
   <title>StockPulse Pro</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       background: #0f172a;
@@ -27,6 +31,10 @@
       border-radius: 10px;
       width: 150px;
     }
+
+    canvas {
+      margin-top: 40px;
+    }
   </style>
 </head>
 
@@ -36,8 +44,13 @@
 
 <div id="stocks"></div>
 
+<!-- Chart -->
+<canvas id="chart" width="600" height="300"></canvas>
+
 <script>
 const API = "https://stockpulsebadhoneditzx.up.railway.app/";
+
+let chart;
 
 function loadData() {
   fetch(API)
@@ -46,24 +59,57 @@ function loadData() {
       const container = document.getElementById("stocks");
       container.innerHTML = "";
 
+      const labels = [];
+      const prices = [];
+
       Object.keys(data).forEach(symbol => {
+        const item = data[symbol];
+
+        // Handle both old + new backend format
+        const price = item.price || item;
+        const change = item.change || 0;
+
+        const color = change >= 0 ? "lime" : "red";
+
         const div = document.createElement("div");
         div.className = "card";
 
         div.innerHTML = `
           <h2>${symbol}</h2>
-          <p>$${data[symbol]}</p>
+          <p>$${price}</p>
+          <p style="color:${color}">
+            ${change > 0 ? "+" : ""}${change}%
+          </p>
         `;
 
         container.appendChild(div);
+
+        labels.push(symbol);
+        prices.push(price);
       });
+
+      drawChart(labels, prices);
     });
 }
 
-// load instantly
-loadData();
+function drawChart(labels, prices) {
+  const ctx = document.getElementById("chart").getContext("2d");
 
-// refresh every 5 sec
+  if (chart) chart.destroy();
+
+  chart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Stock Prices",
+        data: prices
+      }]
+    }
+  });
+}
+
+loadData();
 setInterval(loadData, 5000);
 </script>
 
