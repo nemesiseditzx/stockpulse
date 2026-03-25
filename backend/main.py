@@ -133,19 +133,28 @@ def halal(symbol: str):
 # =============================
 # 📰 NEWS
 # =============================
+import requests
+
 @app.get("/news")
 def news():
-    return [
-        {
-            "title": "Tesla rally",
-            "cause": "EV demand surge",
-            "effect": "Bullish momentum",
-            "impact": "HIGH"
-        },
-        {
-            "title": "Bitcoin spike",
-            "cause": "ETF inflow",
-            "effect": "Market bullish",
-            "impact": "HIGH"
-        }
-    ]
+    url = f"https://finnhub.io/api/v1/news?category=general&token=d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
+
+    try:
+        res = requests.get(url)
+        data = res.json()
+
+        result = []
+
+        for n in data[:10]:
+            result.append({
+                "title": n.get("headline"),
+                "summary": n.get("summary"),
+                "source": n.get("source"),
+                "url": n.get("url")
+            })
+
+        return result
+
+    except Exception as e:
+        print("ERROR:", e)
+        return [{"title": "Error loading news"}]
