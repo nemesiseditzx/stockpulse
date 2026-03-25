@@ -1,114 +1,93 @@
-import yfinance as yf
-import requests
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import time
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-STOCKS = [
-    "AAPL","TSLA","MSFT","NVDA","AMZN",
-    "META","GOOGL","NFLX","AMD","INTC",
-    "BTC-USD","ETH-USD","JPM","BAC","C","GS"
+# -----------------------------
+# HARAM SECTORS
+# -----------------------------
+HARAM_SECTORS = [
+    "Banks",
+    "Financial Services",
+    "Insurance",
+    "Gambling",
+    "Alcohol",
+    "Tobacco"
 ]
 
-# 🔐 ZOYA
-ZOYA_API_KEY = "sandbox-48a6a43f-dcdc-48e2-86b1-f113ebaf8d25"
-ZOYA_URL = "https://sandbox-api.zoya.finance/graphql"
-
-cache = {}
-cache_time = 0
-
-def get_data():
-    global cache, cache_time
-
-    if time.time() - cache_time < 10:
-        return cache
-
-    d = {}
-
-    for s in STOCKS:
-        try:
-            t = yf.Ticker(s)
-            h = t.history(period="2d")
-
-            if len(h) >= 2:
-                l = h["Close"].iloc[-1]
-                p = h["Close"].iloc[-2]
-
-                change = ((l - p) / p) * 100
-
-                signal = "HOLD"
-                if change > 1:
-                    signal = "BUY"
-                elif change < -1:
-                    signal = "SELL"
-
-                d[s] = {
-                    "price": round(float(l),2),
-                    "change": round(float(change),2),
-                    "signal": signal
-                }
-        except:
-            continue
-
-    cache = d
-    cache_time = time.time()
-    return d
-
-
-@app.get("/stocks")
-def stocks():
-    return get_data()
-
-
-@app.get("/halal/{symbol}")
-def halal(symbol: str):
-    sym = symbol.upper().replace("-USD", "")
-
-    query = {
-        "query": """
-        query ($ticker: String!) {
-          screening(ticker: $ticker) {
-            shariahCompliant
-          }
-        }
-        """,
-        "variables": {"ticker": sym}
-    }
-
-    headers = {
-        "Authorization": f"Bearer {ZOYA_API_KEY}"
-    }
-
+# -----------------------------
+# FETCH STOCK DATA (SAFE)
+# -----------------------------
+def get_stock_data(symbol: str):
     try:
-        res = requests.post(ZOYA_URL, json=query, headers=headers)
-        data = res.json()
+        stock = yf.Ticker(symbol)
+        info = stock.info
 
-        if "data" not in data or data["data"]["screening"] is None:
-            return {"status": "UNKNOWN"}
+        return {
+            "symbol": symbol.upper(),
+            "sector": info.get("sector", ""),
+            "industry": info.get("industry", ""),
+            "market_cap": info.get("marketCap", 0) or 0,
+            "total_debt": info.get("totalDebt", 0) or 0,
+            "total_revenue": info.get("totalRevenue", 1) or 1,
+            "interest_expense": info.get("interestExpense", 0) or 0
+        }
+    except:
+        return {
+            "symbol": symbol.upper(),
+            "sector": "",
+            "industry": "",
+            "market_cap": 0,
+            "total_debt": 0,
+            "total_revenue": 1,
+            "interest_expense": 0
+        }
 
-        if data["data"]["screening"]["shariahCompliant"]:
-            return {"status": "HALAL"}
+# -----------------------------
+# BUSINESS FILTER
+# -----------------------------
+def is_haram_business(sector: str, industry: str):
+    text = (sector + " " + industry).lower()
 
-        return {"status": "HARAM"}
+    for haram in HARAM_SECTORS:
+        if haram.lower() in text:
+            return True
 
-    except Exception as e:
-        print("ERROR:", e)
-        return {"status": "ERROR"}
+    return False
 
+# -----------------------------
+# FINANCIAL SCREEN
+# -----------------------------
+def financial_screen(data):
+    try:
+        if data["market_cap"] == 0:
+            return "UNKNOWN"
 
-@app.get("/news")
-def news():
-    return [
-        {"title":"Tesla rally","cause":"EV demand","effect":"Bullish","impact":"HIGH"},
-        {"title":"Bitcoin spike","cause":"ETF","effect":"Market up","impact":"HIGH"}
-    ]
+        debt_ratio = data["total_debt"] / data["market_cap"]
+        interest_ratio = data["interest_expense"] / data["total_revenue"]
+
+        if debt_ratio < 0.33 and interest_ratio < 0.05:
+            return "HALAL"
+        else:
+            return "DOUBTFUL"
+
+    except:
+        return "UNKNOWN"
+
+# -----------------------------
+# CLASSIFIER
+# -----------------------------
+def classify_stock(data):
+    if is_haram_business(data["sector"], data["industry"]):
+        return "HARAM"
+
+    return financial_screen(data)
+
+# -----------------------------
+# HALAL API (FINAL)
+# -----------------------------
+@app.get("/halal/{symbol}")
+def halal_check(symbol: str):
+    data = get_stock_data(symbol)
+    status = classify_stock(data)
+
+    return {
+        "symbol": data["symbol"],
+        "sector": data["sector"],
+        "status": status
+    }
