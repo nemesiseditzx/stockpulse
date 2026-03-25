@@ -7,12 +7,17 @@ fetch("https://stockpulsebadhoneditzx.up.railway.app/news")
   d.forEach(i => {
     let div = document.createElement("div");
 
+    div.style.background = "#1e293b";
+    div.style.padding = "15px";
+    div.style.margin = "10px";
+    div.style.borderRadius = "10px";
+
     div.innerHTML = `
-      <div style="background:#1e293b;padding:15px;margin:10px;border-radius:10px">
-        <h3>${i.title}</h3>
-        <p>${i.summary}</p>
-        <a href="${i.url}" target="_blank" style="color:cyan;">Read more</a>
-      </div>
+      <h3>${i.title}</h3>
+      <p>${i.summary}</p>
+      <a href="${i.url}" target="_blank" style="color:cyan;">
+        🔗 Read more
+      </a>
     `;
 
     n.appendChild(div);
