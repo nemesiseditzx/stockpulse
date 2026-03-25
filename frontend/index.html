@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>StockPulse</title>
+</head>
+<body>
+
+<h1>🚀 StockPulse Live</h1>
+<p id="status">Loading...</p>
+
+<script>
+fetch("https://example.com")
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("status").innerText = data.status;
+  })
+  .catch(() => {
+    document.getElementById("status").innerText = "Backend not connected yet";
+  });
+</script>
+
+</body>
+</html>
