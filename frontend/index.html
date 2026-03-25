@@ -4,7 +4,12 @@
 <title>StockPulse PRO</title>
 
 <style>
-body{background:#020617;color:white;font-family:Arial;text-align:center;}
+body{
+  background:#020617;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
 
 .card{
   background:#1e293b;
@@ -13,7 +18,10 @@ body{background:#020617;color:white;font-family:Arial;text-align:center;}
   width:180px;
   transition:0.3s;
 }
-.card:hover{transform:scale(1.05);}
+
+.card:hover{
+  transform:scale(1.05);
+}
 
 #stocks{
   display:flex;
@@ -22,18 +30,15 @@ body{background:#020617;color:white;font-family:Arial;text-align:center;}
   justify-content:center;
 }
 
-.news,.tweet{
-  background:#0f172a;
-  margin:10px;
-  padding:15px;
-  border-radius:10px;
-}
-
 button,input{
   padding:8px;
   margin:5px;
   border-radius:5px;
   border:none;
+}
+
+.section{
+  margin-top:30px;
 }
 </style>
 </head>
@@ -43,108 +48,88 @@ button,input{
 <h1>📊 StockPulse PRO</h1>
 <p>by BADHON EDITZX</p>
 
-<!-- LOGIN -->
-<h3>👤 Login</h3>
-<input id="user" placeholder="username">
-<button onclick="login()">Login</button>
-<p id="userStatus"></p>
-
-<!-- SENTIMENT -->
-<div id="sentimentBox"></div>
-
-<!-- ALERT -->
-<div id="alertBar"></div>
-
 <!-- SEARCH -->
 <input id="search" placeholder="AAPL">
 <button onclick="search()">Search</button>
 
+<!-- CHART -->
+<div class="section">
+  <iframe id="chart" width="90%" height="400"></iframe>
+</div>
+
+<!-- WATCHLIST -->
+<div class="section">
 <h2>📌 Watchlist</h2>
 <div id="watch"></div>
+</div>
 
+<!-- STOCKS -->
 <div id="stocks"></div>
 
-<!-- CHART -->
-<iframe id="chart" width="90%" height="400"></iframe>
+<!-- HALAL FEATURE (SEPARATE BIG SECTION) -->
+<div class="section">
+<h2>🕌 Halal Stock Checker</h2>
 
-<!-- TWEETS -->
-<h2>🐦 Market Feed</h2>
-<div id="tweets"></div>
-
-<!-- NEWS -->
-<div id="news"></div>
-
-<!-- HALAL -->
-<h2>🕌 Halal Checker</h2>
-<input id="halal">
+<input id="halalInput" placeholder="Enter stock (AAPL)">
 <button onclick="checkHalal()">Check</button>
-<p id="result"></p>
+
+<p id="halalResult"></p>
+
+</div>
 
 <script>
 const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-// LOGIN
-function login(){
-let u=document.getElementById("user").value;
-localStorage.setItem("user",u);
-document.getElementById("userStatus").innerText="Logged in as "+u;
-}
-
-// CHART
+/* ✅ PERFECT CHART FIX */
 function search(symbol){
-let s=symbol||document.getElementById("search").value;
+let s = symbol || document.getElementById("search").value;
 if(!s) return;
 
-s=s.toUpperCase();
+s = s.toUpperCase();
 
-let full="NASDAQ:"+s;
-if(s.includes("BTC")) full="BINANCE:BTCUSDT";
+let full = "NASDAQ:"+s;
+
+if(s==="BTC" || s==="BTCUSD") full="BINANCE:BTCUSDT";
+if(s==="ETH" || s==="ETHUSD") full="BINANCE:ETHUSDT";
 
 document.getElementById("chart").src =
 "https://s.tradingview.com/widgetembed/?symbol="+full+"&interval=1&theme=dark";
 }
 
-// WATCHLIST
+/* WATCHLIST */
 function add(s){
-let list=JSON.parse(localStorage.getItem("w"))||[];
-if(!list.includes(s)) list.push(s);
-localStorage.setItem("w",JSON.stringify(list));
-render();
+let list=JSON.parse(localStorage.getItem("watch"))||[];
+
+if(!list.includes(s)){
+list.push(s);
+localStorage.setItem("watch",JSON.stringify(list));
 }
 
-function render(){
-let list=JSON.parse(localStorage.getItem("w"))||[];
+renderWatch();
+}
+
+function renderWatch(){
+let list=JSON.parse(localStorage.getItem("watch"))||[];
 let c=document.getElementById("watch");
+
 c.innerHTML="";
 
 list.forEach(s=>{
 let b=document.createElement("button");
+
 b.innerText=s;
+
 b.onclick=()=>search(s);
+
 c.appendChild(b);
 });
 }
 
-// ALERT
-function alerts(data){
-let arr=[];
-Object.keys(data).forEach(s=>{
-if(data[s].change>2) arr.push("🚀 "+s);
-if(data[s].change<-2) arr.push("⚠️ "+s);
-});
-document.getElementById("alertBar").innerText =
-arr.join(" | ")||"No alerts";
-}
-
-// DATA
+/* LOAD STOCKS */
 function load(){
-fetch(API).then(r=>r.json()).then(res=>{
-
-document.getElementById("sentimentBox").innerText =
-res.sentiment+" | Confidence: "+res.confidence+"%";
-
-let d=res.stocks;
-
+fetch(API)
+.then(r=>r.json())
+.then(d=>{
 let c=document.getElementById("stocks");
 c.innerHTML="";
 
@@ -155,34 +140,11 @@ let div=document.createElement("div");
 div.className="card";
 
 div.innerHTML=`
-<h3 onclick="search('${s}')">${s}</h3>
+<h3 onclick="search('${s}')" style="cursor:pointer;">${s}</h3>
 <p>$${i.price}</p>
 <p style="color:${i.change>=0?'lime':'red'}">${i.change}%</p>
 <p>${i.signal}</p>
-<button onclick="add('${s}')">⭐</button>
-`;
-
-c.appendChild(div);
-});
-
-alerts(d);
-});
-}
-
-// NEWS
-function news(){
-fetch(API+"news").then(r=>r.json()).then(d=>{
-let c=document.getElementById("news");
-c.innerHTML="<h2>🌍 Market Intelligence</h2>";
-
-d.forEach(n=>{
-let div=document.createElement("div");
-div.className="news";
-
-div.innerHTML=`
-<p><b>${n.effect}</b></p>
-<p>${n.title}</p>
-<p>Cause: ${n.reason}</p>
+<button onclick="add('${s}')">⭐ Add</button>
 `;
 
 c.appendChild(div);
@@ -190,45 +152,21 @@ c.appendChild(div);
 });
 }
 
-// TWEETS
-function tweets(){
-fetch(API+"tweets").then(r=>r.json()).then(d=>{
-let c=document.getElementById("tweets");
-c.innerHTML="";
-
-d.forEach(t=>{
-let div=document.createElement("div");
-div.className="tweet";
-
-div.innerHTML=`
-<p>${t.text}</p>
-<p>${t.impact}</p>
-<a href="${t.link}" target="_blank">View</a>
-`;
-
-c.appendChild(div);
-});
-});
-}
-
-// HALAL
+/* HALAL CHECK */
 function checkHalal(){
-let s=document.getElementById("halal").value;
+let s=document.getElementById("halalInput").value;
+
 fetch(API+"halal/"+s)
 .then(r=>r.json())
 .then(d=>{
-document.getElementById("result").innerText=d.status;
+document.getElementById("halalResult").innerText=d.status;
 });
 }
 
-// INIT
-render();
+/* INIT */
+renderWatch();
 load();
-news();
-tweets();
-
 setInterval(load,5000);
-setInterval(tweets,5000);
 </script>
 
 </body>
