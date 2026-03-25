@@ -76,8 +76,10 @@ def stocks():
 # 🕌 HALAL SYSTEM (FIXED)
 # =============================
 
-FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META"]
-FALLBACK_HARAM = ["JPM","BAC","C","GS"]
+FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META",
+"TSLA","AMZN","ADBE","ORCL","CRM","CSCO",
+"INTU","QCOM","TXN","AVGO","AMAT","LRCX"]
+FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC","AXP"]
 
 # (Optional Zoya – safe placeholder)
 ZOYA_API_KEY = ""
@@ -125,7 +127,7 @@ def halal(symbol: str):
     except:
         pass
 
-    return {"status": "UNKNOWN"}
+    return {"status": "DOUBTFUL"}
 
 
 # =============================
