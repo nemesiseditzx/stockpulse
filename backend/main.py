@@ -20,10 +20,18 @@ def get_data():
 
     for symbol in STOCKS:
         ticker = yf.Ticker(symbol)
-        hist = ticker.history(period="1d")
+        hist = ticker.history(period="2d")
 
-        if not hist.empty:
-            price = float(hist["Close"].iloc[-1])
-            data[symbol] = round(price, 2)
+        if len(hist) >= 2:
+            latest = hist["Close"].iloc[-1]
+            previous = hist["Close"].iloc[-2]
+
+            change = latest - previous
+            percent = (change / previous) * 100
+
+            data[symbol] = {
+                "price": round(float(latest), 2),
+                "change": round(float(percent), 2)
+            }
 
     return data
