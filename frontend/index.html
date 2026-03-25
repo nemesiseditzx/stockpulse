@@ -22,8 +22,13 @@
     .card {
       background: #1e293b;
       padding: 20px;
-      border-radius: 10px;
-      width: 160px;
+      border-radius: 12px;
+      width: 180px;
+      transition: 0.3s;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
     }
 
     input {
@@ -62,24 +67,19 @@
 <h1>📊 StockPulse PRO</h1>
 <p>by BADHON EDITZX</p>
 
-<!-- 🔔 ALERT BAR -->
 <div id="alertBar">Loading alerts...</div>
 
-<!-- SEARCH -->
 <div>
   <input id="searchSymbol" placeholder="AAPL, TSLA, BTCUSDT">
   <button onclick="searchChart()">Search</button>
   <button onclick="addToWatchlist()">⭐ Add</button>
 </div>
 
-<!-- WATCHLIST -->
 <h2>📌 Watchlist</h2>
 <div id="watchlist"></div>
 
-<!-- STOCKS -->
 <div id="stocks"></div>
 
-<!-- CHART -->
 <div style="margin-top:40px;">
   <iframe 
     id="tvChart"
@@ -89,7 +89,6 @@
   </iframe>
 </div>
 
-<!-- NEWS -->
 <div id="news"></div>
 
 <div class="footer">
@@ -145,7 +144,6 @@ function renderWatchlist() {
       : "NASDAQ:" + symbol;
 
     btn.innerText = symbol;
-
     btn.onclick = () => {
       document.getElementById("tvChart").src =
         `https://s.tradingview.com/widgetembed/?symbol=${fullSymbol}&interval=1&theme=dark`;
@@ -155,7 +153,7 @@ function renderWatchlist() {
   });
 }
 
-// ALERT ENGINE
+// ALERT SYSTEM
 function updateAlerts(data) {
   let alerts = [];
 
@@ -163,11 +161,15 @@ function updateAlerts(data) {
     const item = data[symbol];
 
     if (item.change > 2) {
-      alerts.push(`🚀 ${symbol} pumping (${item.change}%)`);
+      alerts.push(`🚀 ${symbol} pumping`);
     }
 
     if (item.change < -2) {
-      alerts.push(`⚠️ ${symbol} dumping (${item.change}%)`);
+      alerts.push(`⚠️ ${symbol} dumping`);
+    }
+
+    if (item.volatility.includes("HIGH")) {
+      alerts.push(`⚡ ${symbol} high volatility`);
     }
   });
 
@@ -185,11 +187,8 @@ function loadData() {
 
       Object.keys(data).forEach(symbol => {
         const item = data[symbol];
-        const color = item.change >= 0 ? "lime" : "red";
 
-        const signalColor =
-          item.signal.includes("BUY") ? "lime" :
-          item.signal.includes("SELL") ? "red" : "gray";
+        const color = item.change >= 0 ? "lime" : "red";
 
         const div = document.createElement("div");
         div.className = "card";
@@ -197,12 +196,18 @@ function loadData() {
         div.innerHTML = `
           <h3>${symbol}</h3>
           <p>$${item.price}</p>
+
           <p style="color:${color}">
             ${item.change > 0 ? "+" : ""}${item.change}%
           </p>
-          <p style="font-weight:bold; color:${signalColor}">
+
+          <p style="font-weight:bold;">
             ${item.signal}
           </p>
+
+          <p>${item.prediction}</p>
+          <p>Confidence: ${item.confidence}%</p>
+          <p>${item.volatility}</p>
         `;
 
         container.appendChild(div);
@@ -233,9 +238,6 @@ function loadNews() {
             ${item.impact} | ${item.direction}
           </p>
           <p>${item.summary}</p>
-          <a href="${item.url}" target="_blank" style="color:lightblue;">
-            Read full
-          </a>
         `;
 
         container.appendChild(div);
