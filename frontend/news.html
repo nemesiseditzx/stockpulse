@@ -2,17 +2,17 @@ fetch("https://stockpulsebadhoneditzx.up.railway.app/news")
 .then(r => r.json())
 .then(d => {
   let n = document.getElementById("news");
-
   n.innerHTML = "";
 
   d.forEach(i => {
     let div = document.createElement("div");
 
     div.innerHTML = `
-      <h3>${i.title}</h3>
-      <p>${i.summary}</p>
-      <a href="${i.url}" target="_blank">Read more</a>
-      <hr>
+      <div style="background:#1e293b;padding:15px;margin:10px;border-radius:10px">
+        <h3>${i.title}</h3>
+        <p>${i.summary}</p>
+        <a href="${i.url}" target="_blank" style="color:cyan;">Read more</a>
+      </div>
     `;
 
     n.appendChild(div);
