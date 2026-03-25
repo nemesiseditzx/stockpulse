@@ -19,7 +19,7 @@ STOCKS = [
     "BTC-USD", "ETH-USD"
 ]
 
-# 📊 MARKET DATA + SIGNAL
+# 📊 MARKET + AI SIGNAL ENGINE
 @app.get("/")
 def get_data():
     data = {}
@@ -34,6 +34,7 @@ def get_data():
 
             percent = ((latest - previous) / previous) * 100
 
+            # 🔥 SIGNAL
             signal = "HOLD"
             if percent > 1.5:
                 signal = "STRONG BUY 🚀"
@@ -44,16 +45,35 @@ def get_data():
             elif percent < -0.5:
                 signal = "SELL"
 
+            # 🧠 AI PREDICTION (SIMULATED)
+            confidence = min(abs(percent) * 20, 95)
+
+            if percent > 0:
+                prediction = "📈 Bullish"
+            elif percent < 0:
+                prediction = "📉 Bearish"
+            else:
+                prediction = "⚖️ Neutral"
+
+            volatility = "LOW"
+            if abs(percent) > 2:
+                volatility = "HIGH ⚡"
+            elif abs(percent) > 1:
+                volatility = "MEDIUM"
+
             data[symbol] = {
                 "price": round(float(latest), 2),
                 "change": round(float(percent), 2),
-                "signal": signal
+                "signal": signal,
+                "prediction": prediction,
+                "confidence": round(confidence, 1),
+                "volatility": volatility
             }
 
     return data
 
 
-# 🌍 ADVANCED NEWS ENGINE
+# 🌍 NEWS + SENTIMENT ENGINE
 @app.get("/news")
 def get_news():
     url = "https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=8&apiKey=4a92eeeadf4a49d292083c9fae812c47"
@@ -70,7 +90,6 @@ def get_news():
         impact = "🟡 LOW"
         direction = "⚖️ NEUTRAL"
 
-        # 🔥 IMPACT DETECTION
         if "war" in lower or "conflict" in lower:
             impact = "🔴 HIGH"
             direction = "📉 BEARISH"
@@ -87,7 +106,6 @@ def get_news():
             impact = "🟢 MEDIUM"
             direction = "📈 BULLISH"
 
-        # 🧠 SIMPLE SUMMARY (AI-like)
         summary = title[:80] + "..."
 
         news.append({
