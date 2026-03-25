@@ -1,1 +1,25 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#020617;color:white">
 
+<h1>🕌 Halal Checker</h1>
+
+<input id="s">
+<button onclick="check()">Check</button>
+
+<h2 id="r"></h2>
+
+<script>
+const API="https://stockpulsebadhoneditzx.up.railway.app/";
+
+function check(){
+fetch(API+"halal/"+document.getElementById("s").value)
+.then(r=>r.json())
+.then(d=>{
+document.getElementById("r").innerText=d.status;
+});
+}
+</script>
+
+</body>
+</html>
