@@ -9,8 +9,7 @@
 <p id="status">Loading...</p>
 
 <script>
-fetch("https://example.com")
-  .then(res => res.json())
+fetch("https://stockpulse-production.up.railway.app")  .then(res => res.json())
   .then(data => {
     document.getElementById("status").innerText = data.status;
   })
