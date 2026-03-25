@@ -43,6 +43,19 @@ button,input{
 <h1>📊 StockPulse PRO</h1>
 <p>by BADHON EDITZX</p>
 
+<!-- LOGIN -->
+<h3>👤 Login</h3>
+<input id="user" placeholder="username">
+<button onclick="login()">Login</button>
+<p id="userStatus"></p>
+
+<!-- SENTIMENT -->
+<div id="sentimentBox"></div>
+
+<!-- ALERT -->
+<div id="alertBar"></div>
+
+<!-- SEARCH -->
 <input id="search" placeholder="AAPL">
 <button onclick="search()">Search</button>
 
@@ -70,7 +83,14 @@ button,input{
 <script>
 const API="https://stockpulsebadhoneditzx.up.railway.app/";
 
-/* CHART FIX */
+// LOGIN
+function login(){
+let u=document.getElementById("user").value;
+localStorage.setItem("user",u);
+document.getElementById("userStatus").innerText="Logged in as "+u;
+}
+
+// CHART
 function search(symbol){
 let s=symbol||document.getElementById("search").value;
 if(!s) return;
@@ -79,13 +99,12 @@ s=s.toUpperCase();
 
 let full="NASDAQ:"+s;
 if(s.includes("BTC")) full="BINANCE:BTCUSDT";
-if(s.includes("ETH")) full="BINANCE:ETHUSDT";
 
 document.getElementById("chart").src =
 "https://s.tradingview.com/widgetembed/?symbol="+full+"&interval=1&theme=dark";
 }
 
-/* WATCHLIST */
+// WATCHLIST
 function add(s){
 let list=JSON.parse(localStorage.getItem("w"))||[];
 if(!list.includes(s)) list.push(s);
@@ -106,9 +125,26 @@ c.appendChild(b);
 });
 }
 
-/* DATA */
+// ALERT
+function alerts(data){
+let arr=[];
+Object.keys(data).forEach(s=>{
+if(data[s].change>2) arr.push("🚀 "+s);
+if(data[s].change<-2) arr.push("⚠️ "+s);
+});
+document.getElementById("alertBar").innerText =
+arr.join(" | ")||"No alerts";
+}
+
+// DATA
 function load(){
-fetch(API).then(r=>r.json()).then(d=>{
+fetch(API).then(r=>r.json()).then(res=>{
+
+document.getElementById("sentimentBox").innerText =
+res.sentiment+" | Confidence: "+res.confidence+"%";
+
+let d=res.stocks;
+
 let c=document.getElementById("stocks");
 c.innerHTML="";
 
@@ -121,17 +157,19 @@ div.className="card";
 div.innerHTML=`
 <h3 onclick="search('${s}')">${s}</h3>
 <p>$${i.price}</p>
-<p>${i.change}%</p>
+<p style="color:${i.change>=0?'lime':'red'}">${i.change}%</p>
 <p>${i.signal}</p>
 <button onclick="add('${s}')">⭐</button>
 `;
 
 c.appendChild(div);
 });
+
+alerts(d);
 });
 }
 
-/* NEWS */
+// NEWS
 function news(){
 fetch(API+"news").then(r=>r.json()).then(d=>{
 let c=document.getElementById("news");
@@ -144,7 +182,7 @@ div.className="news";
 div.innerHTML=`
 <p><b>${n.effect}</b></p>
 <p>${n.title}</p>
-<p style="opacity:0.7;">Cause: ${n.reason}</p>
+<p>Cause: ${n.reason}</p>
 `;
 
 c.appendChild(div);
@@ -152,7 +190,7 @@ c.appendChild(div);
 });
 }
 
-/* TWEETS */
+// TWEETS
 function tweets(){
 fetch(API+"tweets").then(r=>r.json()).then(d=>{
 let c=document.getElementById("tweets");
@@ -164,7 +202,7 @@ div.className="tweet";
 
 div.innerHTML=`
 <p>${t.text}</p>
-<p style="color:orange">${t.impact}</p>
+<p>${t.impact}</p>
 <a href="${t.link}" target="_blank">View</a>
 `;
 
@@ -173,7 +211,7 @@ c.appendChild(div);
 });
 }
 
-/* HALAL */
+// HALAL
 function checkHalal(){
 let s=document.getElementById("halal").value;
 fetch(API+"halal/"+s)
@@ -183,7 +221,7 @@ document.getElementById("result").innerText=d.status;
 });
 }
 
-/* INIT */
+// INIT
 render();
 load();
 news();
