@@ -16,16 +16,16 @@ app.add_middleware(
 STOCKS = [
     "AAPL","TSLA","MSFT","NVDA","AMZN",
     "META","GOOGL","NFLX","AMD","INTC",
-    "BTC-USD","ETH-USD"
+    "BTC-USD","ETH-USD","JPM","BAC"
 ]
 
-# 🕌 STRICT HALAL LOGIC
-HALAL = ["AAPL","MSFT","NVDA","TSLA","GOOGL","AMD"]
+# 🕌 HALAL DATABASE (improved categories)
+HALAL = ["AAPL","MSFT","NVDA","TSLA","GOOGL","AMD","META"]
 HARAM = ["JPM","BAC","C","GS"]
 
 @app.get("/")
 def data():
-    d = {}
+    d={}
     for s in STOCKS:
         t=yf.Ticker(s)
         h=t.history(period="2d")
@@ -50,7 +50,7 @@ def data():
     return d
 
 
-# 🌍 BETTER NEWS ENGINE
+# 🌍 SMART NEWS + EFFECT
 @app.get("/news")
 def news():
     url="https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=6&apiKey=4a92eeeadf4a49d292083c9fae812c47"
@@ -59,28 +59,48 @@ def news():
     out=[]
 
     for a in res.get("articles",[]):
-        title=a["title"].lower()
+        t=a["title"].lower()
 
+        reason="General update"
         effect="Market stable"
 
-        if "war" in title:
-            effect="📉 Crash risk"
-        elif "trump" in title:
-            effect="⚡ Big volatility"
-        elif "fed" in title:
-            effect="📉 Stocks drop"
-        elif "growth" in title:
-            effect="📈 Bullish"
+        if "war" in t:
+            reason="War tension"
+            effect="📉 Market crash risk"
+
+        elif "trump" in t:
+            reason="Political move"
+            effect="⚡ High volatility"
+
+        elif "fed" in t:
+            reason="Interest rate"
+            effect="📉 Stocks fall"
+
+        elif "profit" in t:
+            reason="Company earnings"
+            effect="📈 Bullish move"
 
         out.append({
-            "title":a["title"][:60],
+            "title":a["title"][:70],
+            "reason":reason,
             "effect":effect
         })
 
     return out
 
 
-# 🕌 HALAL FIX
+# 🐦 TWITTER SIMULATION (LIVE FEEL)
+@app.get("/tweets")
+def tweets():
+    return [
+        {"text":"🚨 Trump statement causing market spike"},
+        {"text":"⚡ Fed news shaking tech stocks"},
+        {"text":"🐋 Whale moved $500M BTC"},
+        {"text":"📈 NVDA trending in traders watchlist"}
+    ]
+
+
+# 🕌 HALAL CHECK (IMPROVED)
 @app.get("/halal/{symbol}")
 def halal(symbol:str):
     s=symbol.upper()
@@ -91,4 +111,4 @@ def halal(symbol:str):
     if s in HARAM:
         return {"status":"❌ HARAM"}
 
-    return {"status":"❌ HARAM"}  # strict
+    return {"status":"❌ HARAM"}  # strict fallback
