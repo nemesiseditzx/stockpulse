@@ -5,7 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# CORS (allow frontend connection)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -14,14 +13,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🔥 STOCK + CRYPTO LIST
 STOCKS = [
     "AAPL", "TSLA", "MSFT", "NVDA", "AMZN",
     "META", "GOOGL", "NFLX", "AMD", "INTC",
     "BTC-USD", "ETH-USD"
 ]
 
-# 📊 MARKET DATA + SIGNAL ENGINE
+# 📊 MARKET DATA + SIGNAL
 @app.get("/")
 def get_data():
     data = {}
@@ -34,12 +32,9 @@ def get_data():
             latest = hist["Close"].iloc[-1]
             previous = hist["Close"].iloc[-2]
 
-            change = latest - previous
-            percent = (change / previous) * 100
+            percent = ((latest - previous) / previous) * 100
 
-            # 🔥 SMART SIGNAL ENGINE
             signal = "HOLD"
-
             if percent > 1.5:
                 signal = "STRONG BUY 🚀"
             elif percent > 0.5:
@@ -58,38 +53,49 @@ def get_data():
     return data
 
 
-# 🌍 NEWS + IMPACT ENGINE
+# 🌍 ADVANCED NEWS ENGINE
 @app.get("/news")
 def get_news():
-    url = "https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=6&apiKey=4a92eeeadf4a49d292083c9fae812c47"
+    url = "https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=8&apiKey=4a92eeeadf4a49d292083c9fae812c47"
 
-    response = requests.get(url)
-    articles = response.json().get("articles", [])
+    res = requests.get(url)
+    articles = res.json().get("articles", [])
 
     news = []
 
     for article in articles:
-        title_lower = article["title"].lower()
+        title = article["title"]
+        lower = title.lower()
 
-        impact = "🟡 Neutral"
+        impact = "🟡 LOW"
+        direction = "⚖️ NEUTRAL"
 
-        # 🔥 IMPACT DETECTION LOGIC
-        if "war" in title_lower or "conflict" in title_lower:
-            impact = "🔴 HIGH IMPACT"
-        elif "trump" in title_lower or "fed" in title_lower or "interest rate" in title_lower:
-            impact = "🟠 MARKET MOVING"
+        # 🔥 IMPACT DETECTION
+        if "war" in lower or "conflict" in lower:
+            impact = "🔴 HIGH"
+            direction = "📉 BEARISH"
+
+        elif "trump" in lower:
+            impact = "🟠 HIGH"
+            direction = "⚡ VOLATILE"
+
+        elif "fed" in lower or "interest rate" in lower:
+            impact = "🔴 HIGH"
+            direction = "📉 BEARISH"
+
+        elif "growth" in lower or "profit" in lower:
+            impact = "🟢 MEDIUM"
+            direction = "📈 BULLISH"
+
+        # 🧠 SIMPLE SUMMARY (AI-like)
+        summary = title[:80] + "..."
 
         news.append({
-            "title": article["title"],
-            "url": article["url"],
-            "impact": impact
+            "title": title,
+            "summary": summary,
+            "impact": impact,
+            "direction": direction,
+            "url": article["url"]
         })
 
     return news
-
-
-# 🧪 HEALTH CHECK (optional but useful)
-@app.get("/health")
-def health():
-    return {"status": "backend running 🚀"}
-    
