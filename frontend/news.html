@@ -36,10 +36,22 @@ h1{
   transform:translateY(20px);
 }
 
+/* IMAGE */
+.card img{
+  width:100%;
+  border-radius:10px;
+  margin-bottom:10px;
+  transition:0.3s;
+}
+
 /* HOVER */
 .card:hover{
   transform:scale(1.02);
   box-shadow:0 0 15px rgba(0,255,255,0.3);
+}
+
+.card:hover img{
+  transform:scale(1.05);
 }
 
 /* SHOW ANIMATION */
@@ -53,7 +65,14 @@ h1{
 .medium{border-left:5px solid orange;}
 .low{border-left:5px solid lime;}
 
-a{color:cyan;}
+a{
+  color:cyan;
+  text-decoration:none;
+}
+
+a:hover{
+  text-decoration:underline;
+}
 </style>
 
 </head>
@@ -67,7 +86,7 @@ a{color:cyan;}
 <script>
 const API = "https://stockpulsebadhoneditzx.up.railway.app/news";
 
-/* 🔥 AI LOGIC */
+/* 🔥 AI ANALYSIS */
 function analyze(news){
   let text = (news.title + " " + news.summary).toLowerCase();
 
@@ -102,6 +121,8 @@ function loadNews(){
       div.className = "card " + ai.impact;
 
       div.innerHTML = `
+        ${i.image ? `<img src="${i.image}">` : ""}
+
         <h3>${i.title}</h3>
 
         <p><b>🧠 Analysis:</b> ${ai.effect}</p>
@@ -120,6 +141,9 @@ function loadNews(){
       }, index * 120);
     });
 
+  })
+  .catch(()=>{
+    document.getElementById("news").innerHTML = "⚠️ Error loading news";
   });
 }
 
