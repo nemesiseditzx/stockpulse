@@ -19,9 +19,9 @@ STOCKS = [
     "BTC-USD","ETH-USD","JPM","BAC"
 ]
 
-# 🕌 HALAL DATABASE (improved categories)
+# 🕌 HALAL SYSTEM (STRICT)
 HALAL = ["AAPL","MSFT","NVDA","TSLA","GOOGL","AMD","META"]
-HARAM = ["JPM","BAC","C","GS"]
+HARAM = ["JPM","BAC","C","GS","WFC"]
 
 @app.get("/")
 def data():
@@ -50,7 +50,7 @@ def data():
     return d
 
 
-# 🌍 SMART NEWS + EFFECT
+# 🌍 NEWS ENGINE (CAUSE + EFFECT)
 @app.get("/news")
 def news():
     url="https://newsapi.org/v2/top-headlines?category=business&language=en&pageSize=6&apiKey=4a92eeeadf4a49d292083c9fae812c47"
@@ -69,15 +69,15 @@ def news():
             effect="📉 Market crash risk"
 
         elif "trump" in t:
-            reason="Political move"
+            reason="Political action"
             effect="⚡ High volatility"
 
         elif "fed" in t:
-            reason="Interest rate"
-            effect="📉 Stocks fall"
+            reason="Interest rate decision"
+            effect="📉 Stocks drop"
 
         elif "profit" in t:
-            reason="Company earnings"
+            reason="Strong earnings"
             effect="📈 Bullish move"
 
         out.append({
@@ -89,18 +89,29 @@ def news():
     return out
 
 
-# 🐦 TWITTER SIMULATION (LIVE FEEL)
+# 🐦 TWITTER-LIKE FEED (WITH LINKS)
 @app.get("/tweets")
 def tweets():
     return [
-        {"text":"🚨 Trump statement causing market spike"},
-        {"text":"⚡ Fed news shaking tech stocks"},
-        {"text":"🐋 Whale moved $500M BTC"},
-        {"text":"📈 NVDA trending in traders watchlist"}
+        {
+            "text":"🚨 Trump speech causing market reaction",
+            "impact":"⚡ VOLATILITY",
+            "link":"https://x.com/realDonaldTrump"
+        },
+        {
+            "text":"⚔️ War news shaking oil + stocks",
+            "impact":"📉 BEARISH",
+            "link":"https://www.wsj.com"
+        },
+        {
+            "text":"📊 Tech stocks reacting after Fed news",
+            "impact":"⚡ SPIKE",
+            "link":"https://www.marketwatch.com"
+        }
     ]
 
 
-# 🕌 HALAL CHECK (IMPROVED)
+# 🕌 HALAL CHECK
 @app.get("/halal/{symbol}")
 def halal(symbol:str):
     s=symbol.upper()
@@ -108,7 +119,4 @@ def halal(symbol:str):
     if s in HALAL:
         return {"status":"✅ HALAL"}
 
-    if s in HARAM:
-        return {"status":"❌ HARAM"}
-
-    return {"status":"❌ HARAM"}  # strict fallback
+    return {"status":"❌ HARAM"}
