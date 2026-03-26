@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import yfinance as yf
 import requests
@@ -8,7 +8,7 @@ import re
 app = FastAPI()
 
 # =============================
-# 🌐 CORS (FRONTEND CONNECT)
+# 🌐 CORS
 # =============================
 app.add_middleware(
     CORSMiddleware,
@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # =============================
-# 📊 STOCK SYSTEM (OPTIMIZED)
+# 📊 STOCK SYSTEM
 # =============================
 STOCKS = [
     "AAPL","TSLA","MSFT","NVDA","AMZN",
@@ -33,7 +33,6 @@ cache_time = 0
 def get_stocks():
     global cache, cache_time
 
-    # 🔥 caching (performance boost)
     if time.time() - cache_time < 10:
         return cache
 
@@ -75,7 +74,7 @@ def stocks():
 
 
 # =============================
-# 🕌 HALAL SYSTEM (SMART FIX)
+# 🕌 HALAL SYSTEM
 # =============================
 FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN"]
 FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC"]
@@ -84,19 +83,15 @@ FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC"]
 def halal(symbol: str):
     sym = symbol.upper().replace("-USD", "")
 
-    # 🔥 fallback fast result
     if sym in FALLBACK_HALAL:
         return {"status": "HALAL"}
 
     if sym in FALLBACK_HARAM:
         return {"status": "HARAM"}
 
-    # 🔥 smart sector detection
     try:
         stock = yf.Ticker(sym)
-        info = stock.info
-
-        sector = info.get("sector", "").lower()
+        sector = stock.info.get("sector", "").lower()
 
         if any(x in sector for x in ["bank", "finance", "insurance"]):
             return {"status": "HARAM"}
@@ -108,7 +103,7 @@ def halal(symbol: str):
 
 
 # =============================
-# 📰 NEWS (WITH IMAGE + CLEAN)
+# 📰 NEWS
 # =============================
 FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
@@ -120,69 +115,73 @@ def news():
         res = requests.get(url)
         data = res.json()
 
-        result = []
-
-        for n in data[:12]:
-            result.append({
-                "title": n.get("headline"),
-                "summary": n.get("summary"),
-                "image": n.get("image"),
-                "url": n.get("url"),
-                "source": n.get("source"),
-                "time": n.get("datetime")
-            })
-
-        return result
+        return [{
+            "title": n.get("headline"),
+            "summary": n.get("summary"),
+            "image": n.get("image"),
+            "url": n.get("url"),
+            "source": n.get("source")
+        } for n in data[:12]]
 
     except:
-        return [{"title": "News loading error"}]
+        return []
 
 
 # =============================
-# 📡 SIGNAL SYSTEM (UPGRADE READY)
+# 📡 REAL TELEGRAM SIGNAL SYSTEM
 # =============================
 
-@app.get("/signals-live")
-def signals_live():
+signals_db = []  # 🔥 store signals here
 
-    # 🔥 CURRENT: STATIC (STABLE)
-    # 🔥 FUTURE: TELEGRAM / DB REPLACE HERE
 
-    sample_messages = [
-        "🚨 Trading Alert: META 🚨 Recommendation: Buy Suggested Price: $594.19",
-        "🚨 Trading Alert: AAPL 🚨 Recommendation: Sell Suggested Price: $252.62"
-    ]
+@app.post("/telegram-webhook")
+async def telegram_webhook(req: Request):
 
-    signals = []
+    data = await req.json()
 
-    for text in sample_messages:
+    try:
+        message = data.get("message") or data.get("channel_post")
+
+        if not message:
+            return {"ok": True}
+
+        text = message.get("text", "")
 
         symbol = None
         action = None
         price = None
 
-        # 🔍 symbol detect
+        # SYMBOL
         try:
             symbol = re.search(r'Alert:\s*(\w+)', text).group(1)
         except:
             pass
 
-        # 🔍 action detect
+        # ACTION
         if "Buy" in text:
             action = "BUY"
         elif "Sell" in text:
             action = "SELL"
 
-        # 🔍 price detect
+        # PRICE
         try:
             price = re.search(r'\$(\d+\.?\d*)', text).group(1)
         except:
             pass
 
-        signals.append({
-            "symbol": symbol,
-            "action": action,
-            "price": price
-        })
+        if symbol:
+            signals_db.insert(0, {
+                "symbol": symbol,
+                "action": action,
+                "price": price
+            })
 
-    return signals
+    except Exception as e:
+        print("ERROR:", e)
+
+    return {"ok": True}
+
+
+@app.get("/signals-live")
+def signals_live():
+    return signals_db[:10]
