@@ -1,147 +1,53 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>StockPulse PRO - Signals</title>
+from telethon import TelegramClient
 
-<style>
-body{
-  background:#020617;
-  color:white;
-  font-family:sans-serif;
-  margin:0;
-}
+api_id = 30062420
+api_hash = "0a408d6c4588a5235a6c194e31c77bcf"
 
-/* HEADER */
-h1{
-  text-align:center;
-  padding:20px;
-}
+CHANNEL = "stockpulse_signals"  # 🔥 IMPORTANT
 
-/* CONTAINER */
-#signals{
-  max-width:800px;
-  margin:auto;
-}
+client = TelegramClient("session", api_id, api_hash)
 
-/* CARD */
-.card{
-  background:#1e293b;
-  padding:20px;
-  margin:15px;
-  border-radius:12px;
-  transition:0.3s;
-  opacity:0;
-  transform:translateY(20px);
-}
 
-/* ANIMATION */
-.show{
-  opacity:1;
-  transform:translateY(0);
-}
+@app.get("/signals-live")
+async def signals_live():
 
-/* BUY / SELL COLORS */
-.buy{
-  border-left:6px solid lime;
-  box-shadow:0 0 15px rgba(0,255,0,0.3);
-}
+    await client.start()
 
-.sell{
-  border-left:6px solid red;
-  box-shadow:0 0 15px rgba(255,0,0,0.3);
-}
+    signals = []
 
-/* HOVER */
-.card:hover{
-  transform:scale(1.03);
-}
+    async for msg in client.iter_messages(CHANNEL, limit=10):
 
-/* SYMBOL */
-.symbol{
-  font-size:24px;
-  font-weight:bold;
-}
+        if msg.text:
 
-/* ACTION */
-.action{
-  font-size:18px;
-  margin-top:5px;
-}
+            text = msg.text
 
-/* PRICE */
-.price{
-  font-size:20px;
-  margin-top:10px;
-}
+            symbol = None
+            action = None
+            price = None
 
-/* BUTTON */
-.btn{
-  margin-top:10px;
-  display:inline-block;
-  padding:8px 12px;
-  background:cyan;
-  color:black;
-  border-radius:6px;
-  text-decoration:none;
-}
-</style>
+            # SYMBOL
+            try:
+                symbol = re.search(r'Alert:\s*(\w+)', text).group(1)
+            except:
+                pass
 
-</head>
+            # ACTION
+            if "Buy" in text:
+                action = "BUY"
+            elif "Sell" in text:
+                action = "SELL"
 
-<body>
+            # PRICE
+            try:
+                price = re.search(r'\$(\d+\.?\d*)', text).group(1)
+            except:
+                pass
 
-<h1>📡 Live Trading Signals</h1>
+            if symbol:
+                signals.append({
+                    "symbol": symbol,
+                    "action": action,
+                    "price": price
+                })
 
-<div id="signals"></div>
-
-<script>
-function load(){
-
-fetch("https://stockpulsebadhoneditzx.up.railway.app/signals-live")
-.then(r=>r.json())
-.then(d=>{
-
-  let c=document.getElementById("signals");
-  c.innerHTML="";
-
-  d.forEach((i,index)=>{
-
-    let div=document.createElement("div");
-
-    let cls="card";
-    if(i.action==="BUY") cls+=" buy";
-    if(i.action==="SELL") cls+=" sell";
-
-    div.className=cls;
-
-    div.innerHTML=`
-      <div class="symbol">${i.symbol || "Unknown"}</div>
-
-      <div class="action">
-        ${i.action === "BUY" ? "🟢 BUY SIGNAL" : "🔴 SELL SIGNAL"}
-      </div>
-
-      <div class="price">$${i.price || "-"}</div>
-
-      <a class="btn" href="https://www.tradingview.com/symbols/${i.symbol}/" target="_blank">
-        📊 View Chart
-      </a>
-    `;
-
-    c.appendChild(div);
-
-    setTimeout(()=>{
-      div.classList.add("show");
-    }, index * 120);
-
-  });
-
-});
-}
-
-load();
-setInterval(load,10000);
-</script>
-
-</body>
-</html>
+    return signals
