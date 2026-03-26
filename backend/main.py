@@ -5,9 +5,6 @@ import requests
 import time
 import re
 
-# 🔥 TELEGRAM
-from telethon import TelegramClient
-
 app = FastAPI()
 
 # -----------------------------
@@ -92,7 +89,6 @@ def halal(symbol: str):
     if sym in FALLBACK_HARAM:
         return {"status": "HARAM"}
 
-    # fallback logic using sector (simple AI)
     try:
         stock = yf.Ticker(sym)
         info = stock.info
@@ -109,7 +105,7 @@ def halal(symbol: str):
 
 
 # =============================
-# 📰 NEWS (UPGRADED WITH IMAGE)
+# 📰 NEWS (WITH IMAGE)
 # =============================
 FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
@@ -127,7 +123,7 @@ def news():
             result.append({
                 "title": n.get("headline"),
                 "summary": n.get("summary"),
-                "image": n.get("image"),  # 🔥 NEW
+                "image": n.get("image"),
                 "url": n.get("url"),
                 "source": n.get("source")
             })
@@ -139,55 +135,47 @@ def news():
 
 
 # =============================
-# 📡 TELEGRAM LIVE SIGNALS
+# 📡 SIGNAL SYSTEM (STABLE VERSION)
 # =============================
 
-api_id = 30062420
-api_hash = "0a408d6c4588a5235a6c194e31c77bcf"
-
-CHANNEL = "bank_O01"  # ⚠️ CHANGE THIS
-
-client = TelegramClient("session", api_id, api_hash)
-
-
+# 🔥 TEMP STATIC + AUTO PARSER READY
 @app.get("/signals-live")
-async def signals_live():
-    await client.start()
+def signals_live():
+
+    # 👉 future: telegram/db/json replace here
+
+    sample_messages = [
+        "🚨 Trading Alert: META 🚨 Recommendation: Buy Suggested Price: $594.19",
+        "🚨 Trading Alert: AAPL 🚨 Recommendation: Sell Suggested Price: $252.62"
+    ]
 
     signals = []
 
-    async for msg in client.iter_messages(CHANNEL, limit=10):
-        if msg.text:
+    for text in sample_messages:
 
-            text = msg.text
+        symbol = None
+        action = None
+        price = None
 
-            symbol = None
-            action = None
-            price = None
+        try:
+            symbol = re.search(r'Alert:\s*(\w+)', text).group(1)
+        except:
+            pass
 
-            # 🔍 SYMBOL
-            try:
-                symbol = re.search(r'Alert:(\w+)', text).group(1)
-            except:
-                pass
+        if "Buy" in text:
+            action = "BUY"
+        elif "Sell" in text:
+            action = "SELL"
 
-            # 🔍 ACTION
-            if "Buy" in text:
-                action = "BUY"
-            elif "Sell" in text:
-                action = "SELL"
+        try:
+            price = re.search(r'\$(\d+\.?\d*)', text).group(1)
+        except:
+            pass
 
-            # 🔍 PRICE
-            try:
-                price = re.search(r'\$(\d+\.?\d*)', text).group(1)
-            except:
-                pass
-
-            signals.append({
-                "symbol": symbol,
-                "action": action,
-                "price": price,
-                "raw": text
-            })
+        signals.append({
+            "symbol": symbol,
+            "action": action,
+            "price": price
+        })
 
     return signals
