@@ -145,7 +145,7 @@ def news():
 api_id = 30062420
 api_hash = "0a408d6c4588a5235a6c194e31c77bcf"
 
-CHANNEL = "buysellalert_ai_bot"  # ⚠️ CHANGE THIS
+CHANNEL = "bank_O01"  # ⚠️ CHANGE THIS
 
 client = TelegramClient("session", api_id, api_hash)
 
