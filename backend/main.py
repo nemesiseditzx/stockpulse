@@ -7,9 +7,9 @@ import re
 
 app = FastAPI()
 
-# -----------------------------
-# CORS
-# -----------------------------
+# =============================
+# 🌐 CORS (FRONTEND CONNECT)
+# =============================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # =============================
-# 📊 STOCK SYSTEM
+# 📊 STOCK SYSTEM (OPTIMIZED)
 # =============================
 STOCKS = [
     "AAPL","TSLA","MSFT","NVDA","AMZN",
@@ -33,6 +33,7 @@ cache_time = 0
 def get_stocks():
     global cache, cache_time
 
+    # 🔥 caching (performance boost)
     if time.time() - cache_time < 10:
         return cache
 
@@ -74,7 +75,7 @@ def stocks():
 
 
 # =============================
-# 🕌 HALAL SYSTEM (IMPROVED)
+# 🕌 HALAL SYSTEM (SMART FIX)
 # =============================
 FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN"]
 FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC"]
@@ -83,12 +84,14 @@ FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC"]
 def halal(symbol: str):
     sym = symbol.upper().replace("-USD", "")
 
+    # 🔥 fallback fast result
     if sym in FALLBACK_HALAL:
         return {"status": "HALAL"}
 
     if sym in FALLBACK_HARAM:
         return {"status": "HARAM"}
 
+    # 🔥 smart sector detection
     try:
         stock = yf.Ticker(sym)
         info = stock.info
@@ -105,7 +108,7 @@ def halal(symbol: str):
 
 
 # =============================
-# 📰 NEWS (WITH IMAGE)
+# 📰 NEWS (WITH IMAGE + CLEAN)
 # =============================
 FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
@@ -119,30 +122,31 @@ def news():
 
         result = []
 
-        for n in data[:10]:
+        for n in data[:12]:
             result.append({
                 "title": n.get("headline"),
                 "summary": n.get("summary"),
                 "image": n.get("image"),
                 "url": n.get("url"),
-                "source": n.get("source")
+                "source": n.get("source"),
+                "time": n.get("datetime")
             })
 
         return result
 
     except:
-        return []
+        return [{"title": "News loading error"}]
 
 
 # =============================
-# 📡 SIGNAL SYSTEM (STABLE VERSION)
+# 📡 SIGNAL SYSTEM (UPGRADE READY)
 # =============================
 
-# 🔥 TEMP STATIC + AUTO PARSER READY
 @app.get("/signals-live")
 def signals_live():
 
-    # 👉 future: telegram/db/json replace here
+    # 🔥 CURRENT: STATIC (STABLE)
+    # 🔥 FUTURE: TELEGRAM / DB REPLACE HERE
 
     sample_messages = [
         "🚨 Trading Alert: META 🚨 Recommendation: Buy Suggested Price: $594.19",
@@ -157,16 +161,19 @@ def signals_live():
         action = None
         price = None
 
+        # 🔍 symbol detect
         try:
             symbol = re.search(r'Alert:\s*(\w+)', text).group(1)
         except:
             pass
 
+        # 🔍 action detect
         if "Buy" in text:
             action = "BUY"
         elif "Sell" in text:
             action = "SELL"
 
+        # 🔍 price detect
         try:
             price = re.search(r'\$(\d+\.?\d*)', text).group(1)
         except:
