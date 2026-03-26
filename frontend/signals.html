@@ -1,38 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Signals</title>
+<title>StockPulse PRO - Signals</title>
 
 <style>
 body{
   background:#020617;
   color:white;
   font-family:sans-serif;
+  margin:0;
 }
 
+/* HEADER */
+h1{
+  text-align:center;
+  padding:20px;
+}
+
+/* CONTAINER */
 #signals{
-  max-width:600px;
+  max-width:800px;
   margin:auto;
 }
 
+/* CARD */
 .card{
   background:#1e293b;
   padding:20px;
-  margin:10px;
-  border-radius:10px;
+  margin:15px;
+  border-radius:12px;
   transition:0.3s;
+  opacity:0;
+  transform:translateY(20px);
 }
 
+/* ANIMATION */
+.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+/* BUY / SELL COLORS */
 .buy{
-  border-left:5px solid lime;
+  border-left:6px solid lime;
+  box-shadow:0 0 15px rgba(0,255,0,0.3);
 }
 
 .sell{
-  border-left:5px solid red;
+  border-left:6px solid red;
+  box-shadow:0 0 15px rgba(255,0,0,0.3);
 }
 
+/* HOVER */
 .card:hover{
-  transform:scale(1.02);
+  transform:scale(1.03);
+}
+
+/* SYMBOL */
+.symbol{
+  font-size:24px;
+  font-weight:bold;
+}
+
+/* ACTION */
+.action{
+  font-size:18px;
+  margin-top:5px;
+}
+
+/* PRICE */
+.price{
+  font-size:20px;
+  margin-top:10px;
+}
+
+/* BUTTON */
+.btn{
+  margin-top:10px;
+  display:inline-block;
+  padding:8px 12px;
+  background:cyan;
+  color:black;
+  border-radius:6px;
+  text-decoration:none;
 }
 </style>
 
@@ -40,35 +90,52 @@ body{
 
 <body>
 
-<h1 style="text-align:center;">📡 Live Signals</h1>
+<h1>📡 Live Trading Signals</h1>
 
 <div id="signals"></div>
 
 <script>
 function load(){
+
 fetch("https://stockpulsebadhoneditzx.up.railway.app/signals-live")
 .then(r=>r.json())
 .then(d=>{
+
   let c=document.getElementById("signals");
   c.innerHTML="";
 
-  d.forEach(i=>{
+  d.forEach((i,index)=>{
+
     let div=document.createElement("div");
 
-    let cls = "card";
+    let cls="card";
     if(i.action==="BUY") cls+=" buy";
     if(i.action==="SELL") cls+=" sell";
 
-    div.className = cls;
+    div.className=cls;
 
     div.innerHTML=`
-      <h2>${i.symbol || "Unknown"}</h2>
-      <p><b>${i.action}</b></p>
-      <p>$${i.price || "-"}</p>
+      <div class="symbol">${i.symbol || "Unknown"}</div>
+
+      <div class="action">
+        ${i.action === "BUY" ? "🟢 BUY SIGNAL" : "🔴 SELL SIGNAL"}
+      </div>
+
+      <div class="price">$${i.price || "-"}</div>
+
+      <a class="btn" href="https://www.tradingview.com/symbols/${i.symbol}/" target="_blank">
+        📊 View Chart
+      </a>
     `;
 
     c.appendChild(div);
+
+    setTimeout(()=>{
+      div.classList.add("show");
+    }, index * 120);
+
   });
+
 });
 }
 
