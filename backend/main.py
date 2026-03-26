@@ -128,10 +128,10 @@ def news():
 
 
 # =============================
-# 📡 REAL TELEGRAM SIGNAL SYSTEM
+# 📡 REAL TELEGRAM MESSAGE SYSTEM
 # =============================
 
-signals_db = []  # 🔥 store signals here
+messages_db = []  # 🔥 store full messages
 
 
 @app.post("/telegram-webhook")
@@ -147,33 +147,9 @@ async def telegram_webhook(req: Request):
 
         text = message.get("text", "")
 
-        symbol = None
-        action = None
-        price = None
-
-        # SYMBOL
-        try:
-            symbol = re.search(r'Alert:\s*(\w+)', text).group(1)
-        except:
-            pass
-
-        # ACTION
-        if "Buy" in text:
-            action = "BUY"
-        elif "Sell" in text:
-            action = "SELL"
-
-        # PRICE
-        try:
-            price = re.search(r'\$(\d+\.?\d*)', text).group(1)
-        except:
-            pass
-
-        if symbol:
-            signals_db.insert(0, {
-                "symbol": symbol,
-                "action": action,
-                "price": price
+        if text:
+            messages_db.insert(0, {
+                "text": text
             })
 
     except Exception as e:
@@ -184,4 +160,4 @@ async def telegram_webhook(req: Request):
 
 @app.get("/signals-live")
 def signals_live():
-    return signals_db[:10]
+    return messages_db[:20]
