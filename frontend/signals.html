@@ -1,1 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Signals</title>
 
+<style>
+body{
+  background:#020617;
+  color:white;
+  font-family:sans-serif;
+}
+
+#signals{
+  max-width:600px;
+  margin:auto;
+}
+
+.card{
+  background:#1e293b;
+  padding:20px;
+  margin:10px;
+  border-radius:10px;
+  transition:0.3s;
+}
+
+.buy{
+  border-left:5px solid lime;
+}
+
+.sell{
+  border-left:5px solid red;
+}
+
+.card:hover{
+  transform:scale(1.02);
+}
+</style>
+
+</head>
+
+<body>
+
+<h1 style="text-align:center;">📡 Live Signals</h1>
+
+<div id="signals"></div>
+
+<script>
+function load(){
+fetch("https://stockpulsebadhoneditzx.up.railway.app/signals-live")
+.then(r=>r.json())
+.then(d=>{
+  let c=document.getElementById("signals");
+  c.innerHTML="";
+
+  d.forEach(i=>{
+    let div=document.createElement("div");
+
+    let cls = "card";
+    if(i.action==="BUY") cls+=" buy";
+    if(i.action==="SELL") cls+=" sell";
+
+    div.className = cls;
+
+    div.innerHTML=`
+      <h2>${i.symbol || "Unknown"}</h2>
+      <p><b>${i.action}</b></p>
+      <p>$${i.price || "-"}</p>
+    `;
+
+    c.appendChild(div);
+  });
+});
+}
+
+load();
+setInterval(load,10000);
+</script>
+
+</body>
+</html>
