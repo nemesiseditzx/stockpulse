@@ -1,28 +1,30 @@
-const API = "https://stockpulsebadhoneditzx.up.railway.app";
+const API="https://stockpulsebadhoneditzx.up.railway.app";
 
 function loadSignals(){
 
-  // CURRENT
   fetch(API + "/signals-current")
   .then(res => res.json())
-  .then(data => {
+  .then(res => {
+    const data = res.data;
+
     const feed = document.getElementById("current");
-    feed.innerHTML = "";
+    feed.innerHTML="";
 
     data.forEach(msg => {
       feed.appendChild(createMsg(msg));
     });
   });
 
-  // PREVIOUS
   fetch(API + "/signals-previous")
   .then(res => res.json())
-  .then(data => {
+  .then(res => {
+    const data = res.data;
+
     const feed = document.getElementById("previous");
-    feed.innerHTML = "";
+    feed.innerHTML="";
 
     data.forEach(msg => {
-      feed.appendChild(createMsg(msg, true));
+      feed.appendChild(createMsg(msg,true));
     });
   });
 
@@ -31,27 +33,24 @@ function loadSignals(){
 function createMsg(msg, old=false){
 
   const div = document.createElement("div");
-  div.className = "msg";
+  div.className="msg";
 
   const time = new Date(msg.time * 1000).toLocaleString();
 
   div.innerHTML = `
     <div class="time">${old ? "🕓 Previous" : "📢 Live"} • ${time}</div>
     <div class="text">${format(msg.text)}</div>
+    <div style="font-size:10px;color:gray;">Powered by Badhon EditZX</div>
   `;
 
   return div;
 }
 
 function format(text){
-  if(!text) return "";
-
-  text = text.replace(/BUY/gi, "<span style='color:#22c55e'>BUY</span>");
-  text = text.replace(/SELL/gi, "<span style='color:#ef4444'>SELL</span>");
-
-  return text.replace(/\n/g, "<br>");
+  text = text.replace(/BUY/gi,"<span style='color:#22c55e'>BUY</span>");
+  text = text.replace(/SELL/gi,"<span style='color:#ef4444'>SELL</span>");
+  return text.replace(/\n/g,"<br>");
 }
 
-// AUTO REFRESH
 loadSignals();
-setInterval(loadSignals, 5000);
+setInterval(loadSignals,5000);
