@@ -1,12 +1,27 @@
-const API="https://stockpulsebadhoneditzx.up.railway.app";
+const API = "https://stockpulsebadhoneditzx.up.railway.app";
 
 function loadAlerts(){
+  console.log("Loading alerts...");
+
   fetch(API + "/alerts-live")
   .then(res => res.json())
   .then(data => {
 
+    console.log("DATA:", data); // 🔥 DEBUG
+
     const container = document.getElementById("alerts");
-    container.innerHTML="";
+
+    if(!container){
+      console.log("❌ container not found");
+      return;
+    }
+
+    container.innerHTML = "";
+
+    if(!data || data.length === 0){
+      container.innerHTML = "<p>No alerts yet...</p>";
+      return;
+    }
 
     data.forEach(a => {
 
@@ -29,6 +44,9 @@ function loadAlerts(){
       `;
     });
 
+  })
+  .catch(err => {
+    console.log("❌ FETCH ERROR:", err);
   });
 }
 
@@ -41,6 +59,6 @@ function formatText(text){
   return text;
 }
 
-// auto refresh
+// INIT
 loadAlerts();
 setInterval(loadAlerts, 5000);
