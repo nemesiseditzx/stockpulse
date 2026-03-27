@@ -302,6 +302,8 @@ def alerts_live():
         if now - a["time"] < 86400
     ]
 
+print("ALERT HIT:", data)
+
 # =============================
 # 🔌 WEBSOCKET
 # =============================
