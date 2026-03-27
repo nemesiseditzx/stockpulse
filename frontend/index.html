@@ -3,87 +3,13 @@
 <head>
 <title>StockPulse PRO</title>
 
-<style>
-body{
-  margin:0;
-  display:flex;
-  background:#020617;
-  color:white;
-  font-family:sans-serif
-}
-
-.sidebar{
-  width:220px;
-  background:#0f172a;
-  height:100vh;
-  padding:20px
-}
-
-.sidebar a{
-  display:block;
-  color:white;
-  padding:10px;
-  text-decoration:none;
-  border-radius:6px;
-}
-
-.sidebar a:hover{
-  background:#1e293b
-}
-
-.main{
-  flex:1;
-  padding:20px
-}
-
-#chart{
-  height:500px;
-  margin-bottom:20px;
-}
-
-.grid{
-  display:flex;
-  flex-wrap:wrap;
-}
-
-.card{
-  background:#111827;
-  padding:12px;
-  margin:8px;
-  border-radius:10px;
-  width:160px;
-  transition:0.3s;
-}
-
-.card:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 10px cyan;
-}
-
-.green{color:#22c55e}
-.red{color:#ef4444}
-
-input{
-  padding:10px;
-  border-radius:6px;
-  border:none;
-}
-
-button{
-  padding:10px;
-  border:none;
-  background:#2563eb;
-  color:white;
-  border-radius:6px;
-  cursor:pointer;
-}
-</style>
+<!-- ✅ CSS CONNECT -->
+<link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
 <h2>🚀 StockPulse</h2>
 
@@ -95,7 +21,6 @@ button{
 
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
 <h1>📊 Dashboard</h1>
@@ -110,91 +35,8 @@ button{
 
 </div>
 
-<script>
-
-// ================== CONFIG ==================
-const API="https://stockpulsebadhoneditzx.up.railway.app";
-const WS="wss://stockpulsebadhoneditzx.up.railway.app/ws";
-
-// ================== CHART ==================
-function search(symbol){
-let s=symbol||document.getElementById("search").value;
-if(!s)return;
-
-let c=document.getElementById("chart");
-c.innerHTML="";
-
-let script=document.createElement("script");
-script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-
-script.innerHTML=JSON.stringify({
-  "symbol":"NASDAQ:"+s,
-  "theme":"dark",
-  "autosize":true
-});
-
-c.appendChild(script);
-}
-
-// ================== WEBSOCKET LIVE STOCK ==================
-const ws = new WebSocket(WS);
-
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  const container = document.getElementById("stocks");
-
-  container.innerHTML="";
-
-  Object.keys(data).forEach(symbol => {
-    const stock = data[symbol];
-
-    const colorClass = stock.change >= 0 ? "green" : "red";
-
-    container.innerHTML += `
-      <div class="card">
-        <h3>${symbol}</h3>
-        <p>$${stock.price}</p>
-        <p class="${colorClass}">
-          ${stock.change}%
-        </p>
-        <p>${stock.signal}</p>
-      </div>
-    `;
-  });
-};
-
-// fallback if websocket fail
-function loadStocks(){
-fetch(API+"/stocks")
-.then(r=>r.json())
-.then(d=>{
-let c=document.getElementById("stocks");
-c.innerHTML="";
-
-Object.keys(d).forEach(s=>{
-let i=d[s];
-
-let color=i.change>=0?"green":"red";
-
-c.innerHTML+=`
-<div class="card">
-<h3>${s}</h3>
-<p>$${i.price}</p>
-<p class="${color}">${i.change}%</p>
-<p>${i.signal}</p>
-</div>
-`;
-});
-});
-}
-
-// ================== INIT ==================
-search("AAPL");
-loadStocks();
-
-setInterval(loadStocks,10000);
-
-</script>
+<!-- ✅ JS CONNECT -->
+<script src="main.js"></script>
 
 </body>
 </html>
