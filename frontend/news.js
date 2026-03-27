@@ -10,41 +10,25 @@ function loadNews(){
 
     data.forEach(n => {
 
-      const card = document.createElement("div");
-      card.className="news-card";
+      container.innerHTML += `
+        <div class="news-card" onclick="window.open('${n.url}')">
+          <img src="${n.image || 'https://picsum.photos/400'}" class="news-img">
 
-      card.onclick = () => window.open(n.url, "_blank");
-
-      card.innerHTML = `
-        <img src="${n.image || 'https://picsum.photos/400'}" class="news-img">
-
-        <div class="news-content">
-
-          <div class="news-source">${n.source}</div>
-
-          <div class="news-title">${n.title}</div>
-
-          <div class="news-summary">
-            ${short(n.summary)}
+          <div class="news-content">
+            <div class="news-title">${n.title}</div>
+            <div class="news-summary">${(n.summary||"").substring(0,100)}...</div>
+            <div style="font-size:12px;margin-top:8px;">
+              ⚡ ${n.effect}
+            </div>
+            <div style="font-size:10px;color:gray;margin-top:6px;">
+              Powered by Badhon EditZX
+            </div>
           </div>
-
-          <div style="margin-top:10px;font-size:12px;">
-            <b>⚡ Impact:</b> ${n.effect}
-          </div>
-
         </div>
       `;
-
-      container.appendChild(card);
-
     });
 
   });
-}
-
-function short(text){
-  if(!text) return "No summary";
-  return text.substring(0,100) + "...";
 }
 
 loadNews();
