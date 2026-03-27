@@ -1,9 +1,9 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 import yfinance as yf
 import requests
 import time
-import re
+import asyncio
 
 app = FastAPI()
 
@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # =============================
-# 📊 STOCK SYSTEM
+# 📊 STOCK SYSTEM (IMPROVED)
 # =============================
 STOCKS = [
     "AAPL","TSLA","MSFT","NVDA","AMZN",
@@ -33,6 +33,7 @@ cache_time = 0
 def get_stocks():
     global cache, cache_time
 
+    # ⚡ cache for performance
     if time.time() - cache_time < 10:
         return cache
 
@@ -44,8 +45,8 @@ def get_stocks():
             h = t.history(period="2d")
 
             if len(h) >= 2:
-                l = h["Close"].iloc[-1]
-                p = h["Close"].iloc[-2]
+                l = float(h["Close"].iloc[-1])
+                p = float(h["Close"].iloc[-2])
 
                 change = ((l - p) / p) * 100
 
@@ -56,10 +57,11 @@ def get_stocks():
                     signal = "SELL"
 
                 data[s] = {
-                    "price": round(float(l), 2),
-                    "change": round(float(change), 2),
+                    "price": round(l, 2),
+                    "change": round(change, 2),
                     "signal": signal
                 }
+
         except:
             continue
 
@@ -74,7 +76,7 @@ def stocks():
 
 
 # =============================
-# 🕌 HALAL SYSTEM
+# 🕌 HALAL SYSTEM (SMART)
 # =============================
 FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN"]
 FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC"]
@@ -103,13 +105,13 @@ def halal(symbol: str):
 
 
 # =============================
-# 📰 NEWS
+# 📰 NEWS SYSTEM (REAL API)
 # =============================
-FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
+FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"   # 🔥 replace later
 
 @app.get("/news")
 def news():
-    url = f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_API}"
+    url = f"https://finnhub.io/api/v1/news?category=general&token=d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
     try:
         res = requests.get(url)
@@ -128,11 +130,9 @@ def news():
 
 
 # =============================
-# 📡 REAL TELEGRAM MESSAGE SYSTEM
+# 📡 TELEGRAM SIGNAL SYSTEM
 # =============================
-
-messages_db = []  # 🔥 store full messages
-
+messages_db = []
 
 @app.post("/telegram-webhook")
 async def telegram_webhook(req: Request):
@@ -149,7 +149,8 @@ async def telegram_webhook(req: Request):
 
         if text:
             messages_db.insert(0, {
-                "text": text
+                "text": text,
+                "time": time.time()
             })
 
     except Exception as e:
@@ -161,3 +162,50 @@ async def telegram_webhook(req: Request):
 @app.get("/signals-live")
 def signals_live():
     return messages_db[:20]
+
+
+# =============================
+# 🔌 WEBSOCKET (LIVE ENGINE)
+# =============================
+class ConnectionManager:
+    def __init__(self):
+        self.connections = []
+
+    async def connect(self, ws: WebSocket):
+        await ws.accept()
+        self.connections.append(ws)
+
+    def disconnect(self, ws: WebSocket):
+        if ws in self.connections:
+            self.connections.remove(ws)
+
+    async def broadcast(self, data):
+        for conn in self.connections:
+            try:
+                await conn.send_json(data)
+            except:
+                pass
+
+
+manager = ConnectionManager()
+
+@app.websocket("/ws")
+async def websocket_endpoint(ws: WebSocket):
+    await manager.connect(ws)
+
+    try:
+        while True:
+            data = get_stocks()
+            await manager.broadcast(data)
+            await asyncio.sleep(5)
+
+    except:
+        manager.disconnect(ws)
+
+
+# =============================
+# 🧠 HEALTH CHECK
+# =============================
+@app.get("/")
+def home():
+    return {"status": "StockPulse PRO running"}
