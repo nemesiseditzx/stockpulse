@@ -277,3 +277,15 @@ async def websocket_endpoint(ws: WebSocket):
 @app.get("/")
 def home():
     return {"status": "StockPulse PRO running"}
+
+HALAL_ONLY = True
+
+def is_halal(symbol):
+    return symbol not in ["JPM","BAC","C","GS"]
+
+def get_stocks():
+    ...
+    for s in STOCKS:
+
+        if HALAL_ONLY and not is_halal(s):
+            continue
