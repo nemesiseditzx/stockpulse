@@ -94,5 +94,3 @@ connectWS();
 // 🔁 fallback refresh
 loadStocks();
 setInterval(loadStocks, 10000);
-
-alert("NEW JS LOADED");
