@@ -6,7 +6,7 @@
 
 <title>StockPulse PRO</title>
 
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 
 </head>
 
@@ -40,13 +40,35 @@
   <!-- CHART -->
   <div id="chart"></div>
 
-  <!-- MARKET -->
-  <h2>🔥 Live Market</h2>
+  <!-- 🔥 MARKET SUMMARY -->
+  <div id="summary" class="summary"></div>
+
+  <!-- 🏆 TOP MOVERS -->
+  <h2 style="margin-top:25px;">🏆 Top Movers</h2>
+
+  <div class="top-section">
+
+    <!-- GAINERS -->
+    <div>
+      <h3>📈 Top Gainers</h3>
+      <div id="gainers" class="grid"></div>
+    </div>
+
+    <!-- LOSERS -->
+    <div>
+      <h3>📉 Top Losers</h3>
+      <div id="losers" class="grid"></div>
+    </div>
+
+  </div>
+
+  <!-- 🔥 LIVE MARKET -->
+  <h2 style="margin-top:25px;">🔥 Live Market</h2>
   <div id="stocks" class="grid"></div>
 
 </div>
 
-<script src="main.js?v=6"></script>
+<script src="main.js?v=7"></script>
 
 </body>
 </html>
