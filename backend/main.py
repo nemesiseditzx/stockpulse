@@ -126,11 +126,11 @@ def halal(symbol: str):
 # =============================
 # 📰 NEWS SYSTEM (PRO)
 # =============================
-FINNHUB_API = "YOUR_API_KEY"
+FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
 @app.get("/news")
 def news():
-    url = f"https://finnhub.io/api/v1/news?category=general&token={FINNHUB_API}"
+    url = f"https://finnhub.io/api/v1/news?category=general&token=d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
     try:
         res = requests.get(url)
