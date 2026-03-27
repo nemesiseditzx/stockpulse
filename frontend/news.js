@@ -13,12 +13,10 @@ function loadNews(){
       const card = document.createElement("div");
       card.className="news-card";
 
-      card.onclick = () => {
-        window.open(n.url, "_blank");
-      };
+      card.onclick = () => window.open(n.url, "_blank");
 
       card.innerHTML = `
-        <img src="${n.image || 'https://via.placeholder.com/400'}" class="news-img">
+        <img src="${n.image || 'https://picsum.photos/400'}" class="news-img">
 
         <div class="news-content">
 
@@ -27,7 +25,11 @@ function loadNews(){
           <div class="news-title">${n.title}</div>
 
           <div class="news-summary">
-            ${formatSummary(n.summary)}
+            ${short(n.summary)}
+          </div>
+
+          <div style="margin-top:10px;font-size:12px;">
+            <b>⚡ Impact:</b> ${n.effect}
           </div>
 
         </div>
@@ -40,11 +42,9 @@ function loadNews(){
   });
 }
 
-function formatSummary(text){
-  if(!text) return "No summary available.";
-
-  // make it look like "cause/effect"
-  return "📌 " + text.substring(0,120) + "...";
+function short(text){
+  if(!text) return "No summary";
+  return text.substring(0,100) + "...";
 }
 
 loadNews();
