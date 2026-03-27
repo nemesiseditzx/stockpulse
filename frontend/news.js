@@ -1,4 +1,4 @@
-const API="https://stockpulsebadhoneditzx.up.railway.app";
+const API = "https://stockpulsebadhoneditzx.up.railway.app";
 
 function loadNews(){
   fetch(API + "/news")
@@ -6,45 +6,71 @@ function loadNews(){
   .then(data => {
 
     const container = document.getElementById("news");
-    container.innerHTML="";
+    if(!container) return;
+
+    container.innerHTML = "";
+
+    if(!data || data.length === 0){
+      container.innerHTML = "<p>No news available</p>";
+      return;
+    }
+
+    let html = "";
 
     data.forEach(n => {
 
+      // 🔥 sentiment color
       let sentimentColor = "#94a3b8";
-
       if(n.sentiment === "Bullish") sentimentColor = "#22c55e";
       if(n.sentiment === "Bearish") sentimentColor = "#ef4444";
 
-      container.innerHTML += `
-        <div class="news-card" onclick="window.open('${n.url}')">
+      // 🔥 safe values
+      let title = n.title || "No title";
+      let summary = (n.summary || "").substring(0,120);
+      let image = n.image || "https://picsum.photos/400/200";
+      let url = n.url || "#";
 
-<img src="${n.image || 'https://picsum.photos/400/200'}" class="news-img">
+      html += `
+        <div class="news-card" onclick="window.open('${url}')">
+
+          <img src="${image}" class="news-img">
+
           <div class="news-content">
 
-            <div class="news-title">${n.title}</div>
+            <div class="news-title">${title}</div>
 
             <div class="news-summary">
-              ${(n.summary||"").substring(0,120)}...
+              ${summary}...
             </div>
 
-            <div style="margin-top:10px;font-size:13px;">
-              ⚡ ${n.effect}
+            <div class="news-extra">
+              ⚡ ${n.effect || "Market impact expected"}
             </div>
 
-            <div style="margin-top:5px;font-size:13px;">
-              📊 Sector: ${n.sector}
+            <div class="news-extra">
+              📊 Sector: ${n.sector || "General"}
             </div>
 
-            <div style="margin-top:5px;font-size:13px;color:${sentimentColor};">
-              🧠 ${n.sentiment}
+            <div class="news-extra" style="color:${sentimentColor};">
+              🧠 ${n.sentiment || "Neutral"}
             </div>
 
           </div>
+
         </div>
       `;
     });
 
+    container.innerHTML = html;
+
+  })
+  .catch(err => {
+    console.log("News error:", err);
   });
 }
 
+// 🔁 auto reload (optional pro feature)
+setInterval(loadNews, 60000);
+
+// INIT
 loadNews();
