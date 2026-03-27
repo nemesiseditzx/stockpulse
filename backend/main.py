@@ -74,36 +74,49 @@ def get_stocks():
 def stocks():
     return get_stocks()
 
+# =============================
+# 🕌 PREMIUM HALAL SYSTEM
+# =============================
 
-# =============================
-# 🕌 HALAL SYSTEM (SMART)
-# =============================
-FALLBACK_HALAL = ["AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN"]
-FALLBACK_HARAM = ["JPM","BAC","C","GS","WFC"]
+HALAL_LIST = {
+    "AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN","NFLX"
+}
+
+HARAM_LIST = {
+    "JPM","BAC","C","GS","WFC","MS","AXP"
+}
 
 @app.get("/halal/{symbol}")
 def halal(symbol: str):
     sym = symbol.upper().replace("-USD", "")
 
-    if sym in FALLBACK_HALAL:
+    # 1️⃣ Hard rule
+    if sym in HALAL_LIST:
         return {"status": "HALAL"}
 
-    if sym in FALLBACK_HARAM:
+    if sym in HARAM_LIST:
         return {"status": "HARAM"}
 
+    # 2️⃣ Smart sector detection
     try:
         stock = yf.Ticker(sym)
-        sector = stock.info.get("sector", "").lower()
+        info = stock.info
 
-        if any(x in sector for x in ["bank", "finance", "insurance"]):
+        sector = str(info.get("sector", "")).lower()
+        industry = str(info.get("industry", "")).lower()
+
+        haram_keywords = [
+            "bank", "financial", "insurance",
+            "credit", "lending", "capital markets"
+        ]
+
+        if any(k in sector for k in haram_keywords) or any(k in industry for k in haram_keywords):
             return {"status": "HARAM"}
 
         return {"status": "HALAL"}
 
     except:
         return {"status": "UNKNOWN"}
-
-
 # =============================
 # 📰 NEWS SYSTEM (REAL API)
 # =============================
