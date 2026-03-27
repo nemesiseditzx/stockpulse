@@ -1,3 +1,4 @@
+// ================== CONFIG ==================
 const API="https://stockpulsebadhoneditzx.up.railway.app";
 const WS="wss://stockpulsebadhoneditzx.up.railway.app/ws";
 
@@ -21,7 +22,7 @@ script.innerHTML=JSON.stringify({
 c.appendChild(script);
 }
 
-// ================== STOCK ==================
+// ================== WEBSOCKET ==================
 const ws = new WebSocket(WS);
 
 ws.onmessage = (event) => {
@@ -34,20 +35,20 @@ ws.onmessage = (event) => {
 
   Object.keys(data).forEach(symbol => {
     const stock = data[symbol];
-    const color = stock.change >= 0 ? "green" : "red";
+    const colorClass = stock.change >= 0 ? "green" : "red";
 
     container.innerHTML += `
       <div class="card">
         <h3>${symbol}</h3>
         <p>$${stock.price}</p>
-        <p class="${color}">${stock.change}%</p>
+        <p class="${colorClass}">${stock.change}%</p>
         <p>${stock.signal}</p>
       </div>
     `;
   });
 };
 
-// fallback
+// ================== FALLBACK ==================
 function loadStocks(){
 fetch(API+"/stocks")
 .then(r=>r.json())
@@ -73,6 +74,7 @@ c.innerHTML+=`
 });
 }
 
+// ================== INIT ==================
 search("AAPL");
 loadStocks();
 setInterval(loadStocks,10000);
