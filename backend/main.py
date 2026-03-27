@@ -130,18 +130,39 @@ def news():
         res = requests.get(url)
         data = res.json()
 
-        return [{
-            "title": n.get("headline"),
-            "summary": n.get("summary"),
-            "image": n.get("image"),
-            "url": n.get("url"),
-            "source": n.get("source")
-        } for n in data[:12]]
+        news_list = []
+
+        for n in data[:12]:
+            title = n.get("headline", "")
+            summary = n.get("summary", "")
+
+            # 🔥 SIMPLE INTELLIGENCE ENGINE
+            cause = "Market moving event"
+            effect = "May impact stocks"
+
+            if "oil" in title.lower():
+                effect = "Energy stocks may move"
+
+            if "war" in title.lower() or "iran" in title.lower():
+                effect = "Global markets may be volatile"
+
+            if "fed" in title.lower():
+                effect = "Interest rate sensitive stocks may react"
+
+            news_list.append({
+                "title": title,
+                "summary": summary,
+                "image": n.get("image"),
+                "url": n.get("url"),
+                "source": n.get("source"),
+                "cause": cause,
+                "effect": effect
+            })
+
+        return news_list
 
     except:
         return []
-
-
 # =============================
 # 📡 TELEGRAM SIGNAL SYSTEM
 # =============================
