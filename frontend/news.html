@@ -1,43 +1,81 @@
-# =============================
-# 🕌 PREMIUM HALAL SYSTEM
-# =============================
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Market News | StockPulse PRO</title>
+  <link rel="stylesheet" href="style.css">
 
-HALAL_LIST = {
-    "AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN","NFLX"
-}
+  <style>
+    .news-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+      gap:16px;
+      margin-top:20px;
+    }
 
-HARAM_LIST = {
-    "JPM","BAC","C","GS","WFC","MS","AXP"
-}
+    .news-card{
+      background:#111827;
+      border-radius:12px;
+      overflow:hidden;
+      transition:0.3s;
+      cursor:pointer;
+    }
 
-@app.get("/halal/{symbol}")
-def halal(symbol: str):
-    sym = symbol.upper().replace("-USD", "")
+    .news-card:hover{
+      transform:scale(1.02);
+      box-shadow:0 0 12px #3b82f6;
+    }
 
-    # 1️⃣ Hard rule
-    if sym in HALAL_LIST:
-        return {"status": "HALAL"}
+    .news-img{
+      width:100%;
+      height:180px;
+      object-fit:cover;
+    }
 
-    if sym in HARAM_LIST:
-        return {"status": "HARAM"}
+    .news-content{
+      padding:14px;
+    }
 
-    # 2️⃣ Smart sector detection
-    try:
-        stock = yf.Ticker(sym)
-        info = stock.info
+    .news-title{
+      font-size:16px;
+      font-weight:bold;
+      margin-bottom:8px;
+    }
 
-        sector = str(info.get("sector", "")).lower()
-        industry = str(info.get("industry", "")).lower()
+    .news-source{
+      font-size:12px;
+      color:gray;
+      margin-bottom:6px;
+    }
 
-        haram_keywords = [
-            "bank", "financial", "insurance",
-            "credit", "lending", "capital markets"
-        ]
+    .news-summary{
+      font-size:13px;
+      color:#cbd5f5;
+    }
+  </style>
+</head>
 
-        if any(k in sector for k in haram_keywords) or any(k in industry for k in haram_keywords):
-            return {"status": "HARAM"}
+<body>
 
-        return {"status": "HALAL"}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>🚀 StockPulse</h2>
+  <a href="index.html">Dashboard</a>
+  <a href="halal.html">Halal</a>
+  <a href="news.html">News</a>
+  <a href="signals.html">Signals</a>
+  <a href="alerts.html">Alerts</a>
+</div>
 
-    except:
-        return {"status": "UNKNOWN"}
+<!-- MAIN -->
+<div class="main">
+
+<h1>📰 Market Intelligence</h1>
+
+<div id="news" class="news-grid"></div>
+
+</div>
+
+<script src="news.js"></script>
+
+</body>
+</html>
