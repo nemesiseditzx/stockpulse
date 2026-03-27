@@ -133,30 +133,35 @@ def news():
         news_list = []
 
         for n in data[:12]:
-            title = n.get("headline", "")
+            title = (n.get("headline") or "").lower()
             summary = n.get("summary", "")
 
-            # 🔥 SIMPLE INTELLIGENCE ENGINE
-            cause = "Market moving event"
-            effect = "May impact stocks"
+            # 🎯 DEFAULT
+            effect = "General market movement expected"
 
-            if "oil" in title.lower():
+            # 🔥 SMART IMPACT ENGINE
+            if any(x in title for x in ["oil", "energy"]):
                 effect = "Energy stocks may move"
 
-            if "war" in title.lower() or "iran" in title.lower():
-                effect = "Global markets may be volatile"
+            elif any(x in title for x in ["fed", "interest rate", "inflation"]):
+                effect = "Interest-sensitive stocks may react"
 
-            if "fed" in title.lower():
-                effect = "Interest rate sensitive stocks may react"
+            elif any(x in title for x in ["war", "iran", "china", "military"]):
+                effect = "Global markets may become volatile"
+
+            elif any(x in title for x in ["tech", "chip", "ai"]):
+                effect = "Tech stocks may be affected"
+
+            elif any(x in title for x in ["crypto", "bitcoin"]):
+                effect = "Crypto market may move"
 
             news_list.append({
-                "title": title,
+                "title": n.get("headline"),
                 "summary": summary,
                 "image": n.get("image"),
                 "url": n.get("url"),
                 "source": n.get("source"),
-                "cause": cause,
-                "effect": effect
+                "effect": effect  # ✅ always defined
             })
 
         return news_list
