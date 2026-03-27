@@ -28,7 +28,10 @@ function loadStocks(){
 
     let data = res.data || res;
 
+    // 🔥 ADD THESE 2 LINES
     renderStocks(data);
+    renderTopMovers(data);
+    renderSummary(data);
 
   })
   .catch(() => {
