@@ -126,8 +126,6 @@ def halal(symbol: str):
 # =============================
 # 📰 NEWS SYSTEM (PRO)
 # =============================
-FINNHUB_API = "d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
-
 @app.get("/news")
 def news():
     url = f"https://finnhub.io/api/v1/news?category=general&token=d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
@@ -142,30 +140,47 @@ def news():
             title = (n.get("headline") or "").lower()
             summary = n.get("summary", "")
 
+            # ======================
+            # 🧠 AI LOGIC
+            # ======================
+
             effect = "General market movement expected"
+            sentiment = "Neutral"
+            sector = "Overall Market"
 
-            if any(x in title for x in ["oil", "energy"]):
-                effect = "Energy stocks may move"
+            if any(x in title for x in ["fed","interest","inflation"]):
+                effect = "Interest-sensitive stocks affected"
+                sentiment = "Bearish"
+                sector = "Tech / Growth"
 
-            elif any(x in title for x in ["fed", "interest", "inflation"]):
-                effect = "Interest-sensitive stocks may react"
+            elif any(x in title for x in ["oil","energy"]):
+                effect = "Energy stocks may rise"
+                sentiment = "Bullish"
+                sector = "Energy"
 
-            elif any(x in title for x in ["war", "iran", "china"]):
-                effect = "Global market volatility expected"
+            elif any(x in title for x in ["war","conflict","china","iran"]):
+                effect = "Market volatility expected"
+                sentiment = "Bearish"
+                sector = "Global Markets"
 
-            elif any(x in title for x in ["tech", "ai", "chip"]):
-                effect = "Tech sector impact expected"
+            elif any(x in title for x in ["ai","chip","nvidia","tech"]):
+                effect = "Tech sector momentum"
+                sentiment = "Bullish"
+                sector = "Technology"
 
-            elif any(x in title for x in ["crypto", "bitcoin"]):
-                effect = "Crypto market movement expected"
+            elif any(x in title for x in ["crypto","bitcoin"]):
+                effect = "Crypto price movement"
+                sentiment = "Volatile"
+                sector = "Crypto"
 
             news_list.append({
                 "title": n.get("headline"),
                 "summary": summary,
                 "image": n.get("image"),
                 "url": n.get("url"),
-                "source": n.get("source"),
-                "effect": effect
+                "effect": effect,
+                "sentiment": sentiment,
+                "sector": sector
             })
 
         return news_list
