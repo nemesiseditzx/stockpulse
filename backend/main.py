@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 # =============================
-# 📊 STOCK SYSTEM (FIXED)
+# 📊 STOCK SYSTEM
 # =============================
 STOCKS = [
     "AAPL","TSLA","MSFT","NVDA","AMZN",
@@ -86,13 +86,8 @@ def stocks():
 # =============================
 # 🕌 HALAL SYSTEM
 # =============================
-HALAL_LIST = {
-    "AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN","NFLX"
-}
-
-HARAM_LIST = {
-    "JPM","BAC","C","GS","WFC","MS","AXP"
-}
+HALAL_LIST = {"AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN","NFLX"}
+HARAM_LIST = {"JPM","BAC","C","GS","WFC","MS","AXP"}
 
 @app.get("/halal/{symbol}")
 def halal(symbol: str):
@@ -124,7 +119,7 @@ def halal(symbol: str):
 # =============================
 @app.get("/news")
 def news():
-    url = f"https://finnhub.io/api/v1/news?category=general&token=d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
+    url = "https://finnhub.io/api/v1/news?category=general&token=d726mspr01qjeeeg4ll0d726mspr01qjeeeg4llg"
 
     try:
         res = requests.get(url)
@@ -171,11 +166,11 @@ SIGNAL_FILE = "signals.json"
 def load_messages():
     if not os.path.exists(SIGNAL_FILE):
         return []
-    with open(SIGNAL_FILE, "r") as f:
-        try:
+    try:
+        with open(SIGNAL_FILE, "r") as f:
             return json.load(f)
-        except:
-            return []
+    except:
+        return []
 
 def save_messages(data):
     with open(SIGNAL_FILE, "w") as f:
@@ -190,12 +185,12 @@ async def telegram_webhook(req: Request):
     data = await req.json()
 
     try:
-        message = data.get("message") or data.get("channel_post")
+        message = data.get("channel_post") or data.get("message")
 
         if not message:
             return {"ok": True}
 
-        text = message.get("text", "")
+        text = message.get("text") or message.get("caption", "")
 
         if text:
             messages_db.insert(0, {
@@ -206,7 +201,7 @@ async def telegram_webhook(req: Request):
             save_messages(messages_db)
 
     except Exception as e:
-        print("ERROR:", e)
+        print("SIGNAL ERROR:", e)
 
     return {"ok": True}
 
@@ -228,7 +223,6 @@ def clean_old():
 def current():
     clean_old()
     now = time.time()
-
     return [m for m in messages_db if now - m["time"] < 86400]
 
 
@@ -236,22 +230,21 @@ def current():
 def previous():
     clean_old()
     now = time.time()
-
     return [m for m in messages_db if 86400 <= now - m["time"] < 604800]
 
 # =============================
-# 🔔 ALERT SYSTEM (NEW 🔥)
+# 🔔 ALERT SYSTEM (FINAL FIXED)
 # =============================
 ALERT_FILE = "alerts.json"
 
 def load_alerts():
     if not os.path.exists(ALERT_FILE):
         return []
-    with open(ALERT_FILE, "r") as f:
-        try:
+    try:
+        with open(ALERT_FILE, "r") as f:
             return json.load(f)
-        except:
-            return []
+    except:
+        return []
 
 def save_alerts(data):
     with open(ALERT_FILE, "w") as f:
@@ -265,30 +258,35 @@ async def alert_webhook(req: Request):
 
     data = await req.json()
 
+    print("🔥 ALERT RECEIVED:", data)
+
     try:
-        message = data.get("message") or data.get("channel_post")
+        message = data.get("channel_post") or data.get("message")
 
         if not message:
+            print("❌ NO MESSAGE")
             return {"ok": True}
 
-        text = message.get("text", "")
+        text = message.get("text") or message.get("caption", "")
         image = None
 
-        # 🔥 IMAGE SUPPORT (simple)
         if "photo" in message:
             image = "https://picsum.photos/400/200"
 
         if text or image:
-            alerts_db.insert(0, {
+            new_alert = {
                 "text": text,
                 "image": image,
                 "time": int(time.time())
-            })
+            }
 
+            alerts_db.insert(0, new_alert)
             save_alerts(alerts_db)
 
+            print("✅ ALERT SAVED:", new_alert)
+
     except Exception as e:
-        print("ERROR:", e)
+        print("❌ ALERT ERROR:", e)
 
     return {"ok": True}
 
@@ -296,13 +294,7 @@ async def alert_webhook(req: Request):
 @app.get("/alerts-live")
 def alerts_live():
     now = time.time()
-
-    return [
-        a for a in alerts_db
-        if now - a["time"] < 86400
-    ]
-
-print("ALERT HIT:", data)
+    return [a for a in alerts_db if now - a["time"] < 86400]
 
 # =============================
 # 🔌 WEBSOCKET
@@ -338,10 +330,8 @@ async def websocket_endpoint(ws: WebSocket):
 
     try:
         while True:
-            data = get_stocks()
-            await manager.broadcast(data)
+            await manager.broadcast(get_stocks())
             await asyncio.sleep(5)
-
     except:
         manager.disconnect(ws)
 
