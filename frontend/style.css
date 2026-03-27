@@ -3,95 +3,97 @@ body{
   display:flex;
   background:#020617;
   color:white;
-  font-family:sans-serif;
+  font-family: 'Segoe UI', sans-serif;
 }
 
+/* SIDEBAR */
 .sidebar{
   width:220px;
   background:#0f172a;
   height:100vh;
   padding:20px;
+  border-right:1px solid #1e293b;
+}
+
+.sidebar h2{
+  margin-bottom:20px;
 }
 
 .sidebar a{
   display:block;
-  color:white;
+  color:#94a3b8;
   padding:10px;
   text-decoration:none;
   border-radius:6px;
+  transition:0.3s;
 }
 
 .sidebar a:hover{
   background:#1e293b;
+  color:white;
 }
 
+/* MAIN */
 .main{
   flex:1;
-  padding:20px;
+  padding:25px;
 }
 
-#chart{
-  height:500px;
-  margin-bottom:20px;
-}
-
-.grid{
-  display:flex;
-  flex-wrap:wrap;
-}
-
-.card{
-  background:#111827;
-  padding:12px;
-  margin:8px;
-  border-radius:10px;
-  width:160px;
-  transition:0.3s;
-}
-
-.card:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 10px cyan;
-}
-
-.green{color:#22c55e}
-.red{color:#ef4444}
-
+/* SEARCH */
 input{
   padding:10px;
-  border-radius:6px;
+  border-radius:8px;
   border:none;
+  background:#111827;
+  color:white;
 }
 
 button{
-  padding:10px;
+  padding:10px 14px;
   border:none;
   background:#2563eb;
   color:white;
-  border-radius:6px;
+  border-radius:8px;
   cursor:pointer;
+  margin-left:5px;
 }
 
-.feed{
+/* CHART */
+#chart{
+  height:500px;
+  margin-top:20px;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+/* GRID */
+.grid{
   display:flex;
-  flex-direction:column;
+  flex-wrap:wrap;
+  margin-top:20px;
 }
 
-.msg{
-  background:#111827;
+/* CARD */
+.card{
+  background:#0f172a;
   padding:15px;
-  margin:10px 0;
-  border-radius:10px;
-  border-left:4px solid #3b82f6;
+  margin:10px;
+  border-radius:12px;
+  width:160px;
+  transition:0.3s;
+  border:1px solid #1e293b;
 }
 
-.time{
-  font-size:12px;
-  color:#9ca3af;
-  margin-bottom:8px;
+.card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 0 15px rgba(0,255,255,0.3);
 }
 
-.text{
-  font-size:14px;
-  line-height:1.5;
+/* COLORS */
+.green{
+  color:#22c55e;
+}
+
+.red{
+  color:#ef4444;
 }
