@@ -1,84 +1,80 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Halal Checker</title>
+  <title>Halal Checker | StockPulse PRO</title>
+  <link rel="stylesheet" href="style.css">
 
-<style>
-body{
-  background:#020617;
-  color:white;
-  font-family:sans-serif;
-  text-align:center;
-  padding:40px;
-}
+  <style>
+    .center-box{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      margin-top:60px;
+    }
 
-input,button{
-  padding:10px;
-  margin:10px;
-  border:none;
-  border-radius:6px;
-}
+    .search-box{
+      display:flex;
+      gap:10px;
+      margin:20px 0;
+    }
 
-button{
-  background:#2563eb;
-  color:white;
-  cursor:pointer;
-}
+    .result{
+      font-size:28px;
+      font-weight:bold;
+      margin-top:20px;
+    }
 
-.card{
-  margin-top:30px;
-  padding:20px;
-  border-radius:10px;
-  display:inline-block;
-  min-width:200px;
-}
+    .halal{color:#22c55e}
+    .haram{color:#ef4444}
+    .unknown{color:gray}
 
-.halal{ background:green; }
-.haram{ background:red; }
-.doubt{ background:orange; }
-.unknown{ background:gray; }
-</style>
+    .info-card{
+      background:#111827;
+      padding:20px;
+      border-radius:12px;
+      margin-top:20px;
+      max-width:400px;
+      text-align:center;
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>🕌 Halal Stock Checker</h1>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>🚀 StockPulse</h2>
+  <a href="index.html">Dashboard</a>
+  <a href="halal.html">Halal</a>
+  <a href="news.html">News</a>
+  <a href="signals.html">Signals</a>
+  <a href="alerts.html">Alerts</a>
+</div>
 
-<input id="symbol" placeholder="AAPL">
-<button onclick="check()">Check</button>
+<!-- MAIN -->
+<div class="main">
 
-<div id="result"></div>
+  <h1>🕌 Halal Stock Checker</h1>
 
-<script>
-const API = "https://stockpulsebadhoneditzx.up.railway.app/";
+  <div class="center-box">
 
-function check(){
-  let s = document.getElementById("symbol").value.trim();
+    <div class="search-box">
+      <input id="symbol" placeholder="Enter stock (e.g. AAPL)">
+      <button onclick="checkHalal()">Check</button>
+    </div>
 
-  if(!s) return;
+    <div id="result" class="result">Type a symbol</div>
 
-  fetch(API + "halal/" + s)
-  .then(r => r.json())
-  .then(d => {
-    let status = d.status;
+    <div id="info" class="info-card">
+      Enter a stock symbol to check if it is halal or haram.
+    </div>
 
-    let cls = "unknown";
-    if(status === "HALAL") cls = "halal";
-    else if(status === "HARAM") cls = "haram";
-    else if(status === "DOUBTFUL") cls = "doubt";
+  </div>
 
-    document.getElementById("result").innerHTML = `
-      <div class="card ${cls}">
-        <h2>${s.toUpperCase()}</h2>
-        <h1>${status}</h1>
-      </div>
-    `;
-  })
-  .catch(() => {
-    document.getElementById("result").innerHTML = "ERROR";
-  });
-}
-</script>
+</div>
+
+<script src="halal.js"></script>
 
 </body>
 </html>
