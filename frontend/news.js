@@ -18,8 +18,7 @@ function loadNews(){
       container.innerHTML += `
         <div class="news-card" onclick="window.open('${n.url}')">
 
-          <img src="${n.image || 'https://picsum.photos/400'}" class="news-img">
-
+<img src="${n.image || 'https://picsum.photos/400/200'}" class="news-img">
           <div class="news-content">
 
             <div class="news-title">${n.title}</div>
