@@ -4,9 +4,7 @@ function loadSignals(){
 
   fetch(API + "/signals-current")
   .then(res => res.json())
-  .then(res => {
-    const data = res.data;
-
+  .then(data => {
     const feed = document.getElementById("current");
     feed.innerHTML="";
 
@@ -17,17 +15,14 @@ function loadSignals(){
 
   fetch(API + "/signals-previous")
   .then(res => res.json())
-  .then(res => {
-    const data = res.data;
-
+  .then(data => {
     const feed = document.getElementById("previous");
     feed.innerHTML="";
 
     data.forEach(msg => {
-      feed.appendChild(createMsg(msg,true));
+      feed.appendChild(createMsg(msg, true));
     });
   });
-
 }
 
 function createMsg(msg, old=false){
@@ -40,17 +35,28 @@ function createMsg(msg, old=false){
   div.innerHTML = `
     <div class="time">${old ? "🕓 Previous" : "📢 Live"} • ${time}</div>
     <div class="text">${format(msg.text)}</div>
-    <div style="font-size:10px;color:gray;">Powered by Badhon EditZX</div>
   `;
 
   return div;
 }
 
+// 🔥 FIXED FORMAT FUNCTION
 function format(text){
-  text = text.replace(/BUY/gi,"<span style='color:#22c55e'>BUY</span>");
-  text = text.replace(/SELL/gi,"<span style='color:#ef4444'>SELL</span>");
-  return text.replace(/\n/g,"<br>");
+  if(!text) return "";
+
+  // line break fix
+  text = text.replace(/\\n/g, "<br>");
+
+  // remove markdown **
+  text = text.replace(/\*\*/g, "");
+
+  // BUY SELL highlight
+  text = text.replace(/BUY/gi, "<span style='color:#22c55e;font-weight:bold'>BUY</span>");
+  text = text.replace(/SELL/gi, "<span style='color:#ef4444;font-weight:bold'>SELL</span>");
+
+  return text;
 }
 
+// auto refresh
 loadSignals();
-setInterval(loadSignals,5000);
+setInterval(loadSignals, 5000);
