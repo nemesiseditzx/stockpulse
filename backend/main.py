@@ -176,10 +176,34 @@ def news():
 # =============================
 # 📡 SIGNAL SYSTEM (24h + 7d)
 # =============================
-messages_db = []
+import json
+import os
+
+SIGNAL_FILE = "signals.json"
+
+# load existing
+def load_messages():
+    if not os.path.exists(SIGNAL_FILE):
+        return []
+
+    with open(SIGNAL_FILE, "r") as f:
+        try:
+            return json.load(f)
+        except:
+            return []
+
+# save
+def save_messages(data):
+    with open(SIGNAL_FILE, "w") as f:
+        json.dump(data, f)
+
+messages_db = load_messages()
+
 
 @app.post("/telegram-webhook")
 async def telegram_webhook(req: Request):
+    global messages_db
+
     data = await req.json()
 
     try:
@@ -191,10 +215,15 @@ async def telegram_webhook(req: Request):
         text = message.get("text", "")
 
         if text:
-            messages_db.insert(0, {
+            new_msg = {
                 "text": text,
-                "time": time.time()
-            })
+                "time": int(time.time())
+            }
+
+            messages_db.insert(0, new_msg)
+
+            # 🔥 SAVE TO FILE
+            save_messages(messages_db)
 
     except Exception as e:
         print("ERROR:", e)
@@ -204,12 +233,15 @@ async def telegram_webhook(req: Request):
 
 def clean_old():
     global messages_db
+
     now = time.time()
 
     messages_db = [
         m for m in messages_db
-        if now - m["time"] < 604800   # 7 days
+        if now - m["time"] < 604800
     ]
+
+    save_messages(messages_db)
 
 
 @app.get("/signals-current")
@@ -219,7 +251,7 @@ def current():
 
     return [
         m for m in messages_db
-        if now - m["time"] < 86400   # 24h
+        if now - m["time"] < 86400
     ]
 
 
