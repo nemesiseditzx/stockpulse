@@ -1,16 +1,23 @@
 body{
   margin:0;
   display:flex;
-  background:#020617;
+  background:linear-gradient(135deg,#020617,#020617,#0f172a);
   color:white;
-  font-family:sans-serif;
+  font-family:'Segoe UI',sans-serif;
 }
 
+/* SIDEBAR */
 .sidebar{
   width:220px;
-  background:#0f172a;
+  background:rgba(15,23,42,0.9);
+  backdrop-filter: blur(10px);
   height:100vh;
   padding:20px;
+  border-right:1px solid rgba(255,255,255,0.05);
+}
+
+.sidebar h2{
+  margin-bottom:20px;
 }
 
 .sidebar a{
@@ -18,60 +25,84 @@ body{
   color:#94a3b8;
   padding:10px;
   text-decoration:none;
-  border-radius:6px;
+  border-radius:8px;
+  transition:0.3s;
 }
 
 .sidebar a:hover{
-  background:#1e293b;
+  background:rgba(255,255,255,0.05);
   color:white;
 }
 
+/* MAIN */
 .main{
   flex:1;
-  padding:20px;
+  padding:25px;
 }
 
+/* INPUT */
+input{
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:#111827;
+  color:white;
+}
+
+button{
+  padding:10px 14px;
+  border:none;
+  background:linear-gradient(45deg,#2563eb,#3b82f6);
+  color:white;
+  border-radius:10px;
+  cursor:pointer;
+  margin-left:5px;
+}
+
+/* CHART */
 #chart{
   height:500px;
+  margin-top:20px;
+  border-radius:16px;
+  overflow:hidden;
 }
 
+/* GRID */
 .grid{
   display:flex;
   flex-wrap:wrap;
+  margin-top:20px;
 }
 
+/* CARD (🔥 PREMIUM) */
 .card{
-  background:#111827;
-  padding:12px;
-  margin:8px;
-  border-radius:10px;
-  width:160px;
+  background:rgba(15,23,42,0.7);
+  backdrop-filter: blur(10px);
+  padding:15px;
+  margin:10px;
+  border-radius:14px;
+  width:170px;
+  border:1px solid rgba(255,255,255,0.05);
   transition:0.3s;
 }
 
 .card:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 10px cyan;
+  transform:translateY(-6px) scale(1.03);
+  box-shadow:0 0 20px rgba(0,255,255,0.25);
 }
 
-.green{color:#22c55e}
-.red{color:#ef4444}
-
-.msg{
-  background:#111827;
-  padding:15px;
-  margin:10px 0;
-  border-radius:10px;
-  box-shadow:0 0 10px rgba(0,255,255,0.1);
+/* TEXT COLORS */
+.green{
+  color:#22c55e;
+  font-weight:bold;
 }
 
-.time{
-  font-size:12px;
-  color:#94a3b8;
-  margin-bottom:8px;
+.red{
+  color:#ef4444;
+  font-weight:bold;
 }
 
-.text{
-  line-height:1.5;
-  font-size:14px;
+/* TITLE */
+h1, h2{
+  letter-spacing:0.5px;
 }
