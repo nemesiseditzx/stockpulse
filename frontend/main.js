@@ -73,6 +73,62 @@ function renderStocks(data){
   });
 }
 
+// ================== TOP MOVERS ==================
+function renderTopMovers(data){
+
+  let arr = Object.keys(data).map(s => ({
+    symbol: s,
+    ...data[s]
+  }));
+
+  // sort by change
+  let gainers = [...arr].sort((a,b)=>b.change-a.change).slice(0,5);
+  let losers = [...arr].sort((a,b)=>a.change-b.change).slice(0,5);
+
+  renderMini("gainers", gainers);
+  renderMini("losers", losers);
+}
+
+function renderMini(id, list){
+  let c = document.getElementById(id);
+  if(!c) return;
+
+  c.innerHTML="";
+
+  list.forEach(i=>{
+    let color = i.change>=0?"green":"red";
+    let arrow = i.change>=0?"▲":"▼";
+
+    c.innerHTML += `
+      <div class="card">
+        <h3>${i.symbol}</h3>
+        <p>$${i.price}</p>
+        <p class="${color}">
+          ${arrow} ${i.change}%
+        </p>
+      </div>
+    `;
+  });
+}
+
+// ================== SUMMARY ==================
+function renderSummary(data){
+  let total = Object.keys(data).length;
+  let gain = 0;
+  let loss = 0;
+
+  Object.values(data).forEach(i=>{
+    if(i.change>=0) gain++;
+    else loss++;
+  });
+
+  document.getElementById("summary").innerHTML = `
+    <div>📊 Total: ${total}</div>
+    <div class="green">📈 Gainers: ${gain}</div>
+    <div class="red">📉 Losers: ${loss}</div>
+  `;
+}
+
 // ================== INIT ==================
 search("AAPL");
 loadStocks();
