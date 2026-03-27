@@ -106,3 +106,26 @@ button{
 h1, h2{
   letter-spacing:0.5px;
 }
+
+/* SUMMARY */
+.summary{
+  margin-top:15px;
+  padding:15px;
+  background:rgba(15,23,42,0.7);
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.05);
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+/* TOP MOVERS */
+.top-section{
+  display:flex;
+  gap:30px;
+  flex-wrap:wrap;
+}
+
+.top-section > div{
+  flex:1;
+}
