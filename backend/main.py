@@ -169,9 +169,13 @@ def news():
     except:
         return []
 # =============================
-# 📡 TELEGRAM SIGNAL SYSTEM
+# 📡 SIGNAL STORAGE (UPGRADED)
 # =============================
+
 messages_db = []
+
+EXPIRY_TIME = 86400  # 1 day (seconds)
+
 
 @app.post("/telegram-webhook")
 async def telegram_webhook(req: Request):
@@ -198,10 +202,30 @@ async def telegram_webhook(req: Request):
     return {"ok": True}
 
 
-@app.get("/signals-live")
-def signals_live():
-    return messages_db[:20]
+# =============================
+# 🎯 CURRENT SIGNALS (last 24h)
+# =============================
+@app.get("/signals-current")
+def signals_current():
+    now = time.time()
 
+    return [
+        m for m in messages_db
+        if now - m["time"] <= EXPIRY_TIME
+    ]
+
+
+# =============================
+# 🕓 PREVIOUS SIGNALS (old)
+# =============================
+@app.get("/signals-previous")
+def signals_previous():
+    now = time.time()
+
+    return [
+        m for m in messages_db
+        if now - m["time"] > EXPIRY_TIME
+    ]
 
 # =============================
 # 🔌 WEBSOCKET (LIVE ENGINE)
