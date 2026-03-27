@@ -1,51 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>StockPulse PRO</title>
 
-<!-- ✅ STYLE -->
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5">
 
 </head>
 
 <body>
 
-<!-- 🔥 SIDEBAR -->
 <div class="sidebar">
-  <h2>🚀 StockPulse</h2>
+<h2>🚀 StockPulse</h2>
 
-  <a href="index.html">Dashboard</a>
-  <a href="halal.html">Halal</a>
-  <a href="news.html">News</a>
-  <a href="signals.html">Signals</a>
-  <a href="alerts.html">Alerts</a>
+<a href="index.html">Dashboard</a>
+<a href="halal.html">Halal</a>
+<a href="news.html">News</a>
+<a href="signals.html">Signals</a>
+<a href="alerts.html">Alerts</a>
+
 </div>
 
-<!-- 🔥 MAIN CONTENT -->
 <div class="main">
 
-  <h1>📊 Dashboard</h1>
+<h1>📊 Dashboard</h1>
 
-  <!-- 🔎 SEARCH -->
-  <div style="margin-bottom:15px;">
-    <input id="search" placeholder="AAPL">
-    <button onclick="search()">Search</button>
-  </div>
+<input id="search" placeholder="AAPL">
+<button onclick="search()">Search</button>
 
-  <!-- 📈 CHART -->
-  <div id="chart"></div>
+<div id="chart"></div>
 
-  <!-- 📊 LIVE MARKET -->
-  <h2>🔥 Live Market</h2>
-  <div id="stocks" class="grid"></div>
+<h2>🔥 Live Market</h2>
+<div id="stocks" class="grid"></div>
 
 </div>
 
-<!-- ✅ FORCE CACHE BREAK -->
-<script src="main.js?v=3"></script>
+<script src="main.js?v=5"></script>
 
 </body>
 </html>
