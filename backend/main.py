@@ -169,17 +169,13 @@ def news():
     except:
         return []
 # =============================
-# 📡 SIGNAL STORAGE (UPGRADED)
+# 📡 SIGNAL SYSTEM (FINAL PRO)
 # =============================
 
 messages_db = []
 
-EXPIRY_TIME = 86400  # 1 day (seconds)
-
-
 @app.post("/telegram-webhook")
 async def telegram_webhook(req: Request):
-
     data = await req.json()
 
     try:
@@ -202,31 +198,40 @@ async def telegram_webhook(req: Request):
     return {"ok": True}
 
 
-# =============================
-# 🎯 CURRENT SIGNALS (last 24h)
-# =============================
+# 🔥 CLEAN OLD DATA (IMPORTANT)
+def clean_old():
+    now = time.time()
+    global messages_db
+
+    # keep only last 7 days
+    messages_db = [
+        m for m in messages_db
+        if now - m["time"] < 604800   # 7 days
+    ]
+
+
+# 🔥 CURRENT (last 24h)
 @app.get("/signals-current")
-def signals_current():
+def current():
+    clean_old()
     now = time.time()
 
     return [
         m for m in messages_db
-        if now - m["time"] <= EXPIRY_TIME
+        if now - m["time"] < 86400   # 24h
     ]
 
 
-# =============================
-# 🕓 PREVIOUS SIGNALS (old)
-# =============================
+# 🕓 PREVIOUS (1 day → 7 days)
 @app.get("/signals-previous")
-def signals_previous():
+def previous():
+    clean_old()
     now = time.time()
 
     return [
         m for m in messages_db
-        if now - m["time"] > EXPIRY_TIME
+        if 86400 <= now - m["time"] < 604800
     ]
-
 # =============================
 # 🔌 WEBSOCKET (LIVE ENGINE)
 # =============================
