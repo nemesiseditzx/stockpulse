@@ -1,148 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>StockPulse PRO - Signals</title>
+  <title>Live Signals | StockPulse PRO</title>
+  <link rel="stylesheet" href="style.css">
 
-<style>
-body{
-  background:#020617;
-  color:white;
-  font-family:sans-serif;
-  margin:0;
-}
+  <style>
+    .feed{
+      margin-top:20px;
+      max-width:700px;
+    }
 
-/* HEADER */
-h1{
-  text-align:center;
-  padding:20px;
-}
+    .msg{
+      background:#111827;
+      padding:14px;
+      margin-bottom:12px;
+      border-radius:10px;
+      transition:0.3s;
+      border-left:4px solid #3b82f6;
+    }
 
-/* CONTAINER */
-#signals{
-  max-width:800px;
-  margin:auto;
-}
+    .msg:hover{
+      transform:scale(1.02);
+      box-shadow:0 0 10px #3b82f6;
+    }
 
-/* CARD */
-.card{
-  background:#1e293b;
-  padding:20px;
-  margin:15px;
-  border-radius:12px;
-  transition:0.3s;
-  opacity:0;
-  transform:translateY(20px);
-}
+    .time{
+      font-size:11px;
+      color:gray;
+      margin-bottom:5px;
+    }
 
-/* ANIMATION */
-.show{
-  opacity:1;
-  transform:translateY(0);
-}
-
-/* BUY / SELL COLORS */
-.buy{
-  border-left:6px solid lime;
-  box-shadow:0 0 15px rgba(0,255,0,0.3);
-}
-
-.sell{
-  border-left:6px solid red;
-  box-shadow:0 0 15px rgba(255,0,0,0.3);
-}
-
-/* HOVER */
-.card:hover{
-  transform:scale(1.03);
-}
-
-/* SYMBOL */
-.symbol{
-  font-size:24px;
-  font-weight:bold;
-}
-
-/* ACTION */
-.action{
-  font-size:18px;
-  margin-top:5px;
-}
-
-/* PRICE */
-.price{
-  font-size:20px;
-  margin-top:10px;
-}
-
-/* BUTTON */
-.btn{
-  margin-top:10px;
-  display:inline-block;
-  padding:8px 12px;
-  background:cyan;
-  color:black;
-  border-radius:6px;
-  text-decoration:none;
-}
-</style>
-
+    .text{
+      font-size:14px;
+      white-space:pre-line;
+    }
+  </style>
 </head>
 
 <body>
 
-<h1>📡 Live Trading Signals</h1>
+<div class="sidebar">
+  <h2>🚀 StockPulse</h2>
+  <a href="index.html">Dashboard</a>
+  <a href="halal.html">Halal</a>
+  <a href="news.html">News</a>
+  <a href="signals.html">Signals</a>
+  <a href="alerts.html">Alerts</a>
+</div>
 
-<div id="signals"></div>
+<div class="main">
 
-<script>
-<script>
-const API = "https://stockpulsebadhoneditzx.up.railway.app/signals-live";
+<h1>📡 Live Market Feed</h1>
 
-function loadSignals(){
-  fetch(API)
-  .then(r => r.json())
-  .then(data => {
+<div id="feed" class="feed"></div>
 
-    let container = document.getElementById("signals");
-    container.innerHTML = "";
+</div>
 
-    data.forEach((item, index) => {
-
-      let text = item.text || "";
-
-      // 🔥 detect values from raw text
-      let symbol = (text.match(/Alert:\s*(\w+)/) || [])[1] || "Unknown";
-      let action = text.includes("Buy") ? "BUY" : (text.includes("Sell") ? "SELL" : "UNKNOWN");
-      let price = (text.match(/\$(\d+\.?\d*)/) || [])[1] || "-";
-
-      let div = document.createElement("div");
-
-      div.style.background = "#1e293b";
-      div.style.padding = "20px";
-      div.style.margin = "15px";
-      div.style.borderRadius = "12px";
-
-      div.innerHTML = `
-        <h2>${symbol}</h2>
-        <p>${action} SIGNAL</p>
-        <p>$${price}</p>
-
-        <p style="font-size:12px;opacity:0.7;">${text}</p>
-
-        <a href="https://www.tradingview.com/chart/?symbol=${symbol}" target="_blank">
-          📊 View Chart
-        </a>
-      `;
-
-      container.appendChild(div);
-    });
-
-  });
-}
-
-loadSignals();
-setInterval(loadSignals, 5000);
-</script>
+<script src="signals.js"></script>
 
 </body>
 </html>
