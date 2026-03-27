@@ -4,6 +4,8 @@ import yfinance as yf
 import requests
 import time
 import asyncio
+import json
+import os
 
 app = FastAPI()
 
@@ -27,7 +29,7 @@ STOCKS = [
     "BTC-USD","ETH-USD","JPM","BAC","C","GS"
 ]
 
-HALAL_BLOCK = {"JPM","BAC","C","GS"}  # ❌ remove haram
+HALAL_BLOCK = {"JPM","BAC","C","GS"}
 
 cache = {}
 cache_time = 0
@@ -42,7 +44,6 @@ def get_stocks():
 
     for s in STOCKS:
         try:
-            # ✅ HALAL FILTER
             if s in HALAL_BLOCK:
                 continue
 
@@ -83,7 +84,7 @@ def stocks():
     }
 
 # =============================
-# 🕌 HALAL SYSTEM (PRO)
+# 🕌 HALAL SYSTEM
 # =============================
 HALAL_LIST = {
     "AAPL","MSFT","NVDA","AMD","GOOGL","META","TSLA","AMZN","NFLX"
@@ -110,12 +111,7 @@ def halal(symbol: str):
         sector = str(info.get("sector", "")).lower()
         industry = str(info.get("industry", "")).lower()
 
-        haram_keywords = [
-            "bank", "financial", "insurance",
-            "credit", "lending", "capital markets"
-        ]
-
-        if any(k in sector for k in haram_keywords) or any(k in industry for k in haram_keywords):
+        if "bank" in sector or "finance" in sector:
             return {"status": "HARAM"}
 
         return {"status": "HALAL"}
@@ -124,7 +120,7 @@ def halal(symbol: str):
         return {"status": "UNKNOWN"}
 
 # =============================
-# 📰 NEWS SYSTEM (PRO)
+# 📰 NEWS SYSTEM
 # =============================
 @app.get("/news")
 def news():
@@ -140,38 +136,17 @@ def news():
             title = (n.get("headline") or "").lower()
             summary = n.get("summary", "")
 
-            # ======================
-            # 🧠 AI LOGIC
-            # ======================
-
-            effect = "General market movement expected"
+            effect = "Market impact expected"
             sentiment = "Neutral"
-            sector = "Overall Market"
+            sector = "General"
 
-            if any(x in title for x in ["fed","interest","inflation"]):
-                effect = "Interest-sensitive stocks affected"
+            if "fed" in title or "interest" in title:
                 sentiment = "Bearish"
-                sector = "Tech / Growth"
+                sector = "Tech"
 
-            elif any(x in title for x in ["oil","energy"]):
-                effect = "Energy stocks may rise"
-                sentiment = "Bullish"
-                sector = "Energy"
-
-            elif any(x in title for x in ["war","conflict","china","iran"]):
-                effect = "Market volatility expected"
-                sentiment = "Bearish"
-                sector = "Global Markets"
-
-            elif any(x in title for x in ["ai","chip","nvidia","tech"]):
-                effect = "Tech sector momentum"
+            elif "ai" in title or "chip" in title:
                 sentiment = "Bullish"
                 sector = "Technology"
-
-            elif any(x in title for x in ["crypto","bitcoin"]):
-                effect = "Crypto price movement"
-                sentiment = "Volatile"
-                sector = "Crypto"
 
             news_list.append({
                 "title": n.get("headline"),
@@ -189,31 +164,24 @@ def news():
         return []
 
 # =============================
-# 📡 SIGNAL SYSTEM (24h + 7d)
+# 📡 SIGNAL SYSTEM
 # =============================
-import json
-import os
-
 SIGNAL_FILE = "signals.json"
 
-# load existing
 def load_messages():
     if not os.path.exists(SIGNAL_FILE):
         return []
-
     with open(SIGNAL_FILE, "r") as f:
         try:
             return json.load(f)
         except:
             return []
 
-# save
 def save_messages(data):
     with open(SIGNAL_FILE, "w") as f:
         json.dump(data, f)
 
 messages_db = load_messages()
-
 
 @app.post("/telegram-webhook")
 async def telegram_webhook(req: Request):
@@ -230,14 +198,11 @@ async def telegram_webhook(req: Request):
         text = message.get("text", "")
 
         if text:
-            new_msg = {
+            messages_db.insert(0, {
                 "text": text,
                 "time": int(time.time())
-            }
+            })
 
-            messages_db.insert(0, new_msg)
-
-            # 🔥 SAVE TO FILE
             save_messages(messages_db)
 
     except Exception as e:
@@ -264,10 +229,7 @@ def current():
     clean_old()
     now = time.time()
 
-    return [
-        m for m in messages_db
-        if now - m["time"] < 86400
-    ]
+    return [m for m in messages_db if now - m["time"] < 86400]
 
 
 @app.get("/signals-previous")
@@ -275,13 +237,73 @@ def previous():
     clean_old()
     now = time.time()
 
+    return [m for m in messages_db if 86400 <= now - m["time"] < 604800]
+
+# =============================
+# 🔔 ALERT SYSTEM (NEW 🔥)
+# =============================
+ALERT_FILE = "alerts.json"
+
+def load_alerts():
+    if not os.path.exists(ALERT_FILE):
+        return []
+    with open(ALERT_FILE, "r") as f:
+        try:
+            return json.load(f)
+        except:
+            return []
+
+def save_alerts(data):
+    with open(ALERT_FILE, "w") as f:
+        json.dump(data, f)
+
+alerts_db = load_alerts()
+
+@app.post("/alert-webhook")
+async def alert_webhook(req: Request):
+    global alerts_db
+
+    data = await req.json()
+
+    try:
+        message = data.get("message") or data.get("channel_post")
+
+        if not message:
+            return {"ok": True}
+
+        text = message.get("text", "")
+        image = None
+
+        # 🔥 IMAGE SUPPORT (simple)
+        if "photo" in message:
+            image = "https://picsum.photos/400/200"
+
+        if text or image:
+            alerts_db.insert(0, {
+                "text": text,
+                "image": image,
+                "time": int(time.time())
+            })
+
+            save_alerts(alerts_db)
+
+    except Exception as e:
+        print("ERROR:", e)
+
+    return {"ok": True}
+
+
+@app.get("/alerts-live")
+def alerts_live():
+    now = time.time()
+
     return [
-        m for m in messages_db
-        if 86400 <= now - m["time"] < 604800
+        a for a in alerts_db
+        if now - a["time"] < 86400
     ]
 
 # =============================
-# 🔌 WEBSOCKET (LIVE)
+# 🔌 WEBSOCKET
 # =============================
 class ConnectionManager:
     def __init__(self):
@@ -322,7 +344,7 @@ async def websocket_endpoint(ws: WebSocket):
         manager.disconnect(ws)
 
 # =============================
-# 🧠 HEALTH CHECK
+# 🧠 HEALTH
 # =============================
 @app.get("/")
 def home():
