@@ -1,40 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>StockPulse PRO</title>
 
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
-<h2>🚀 StockPulse</h2>
+  <h2>🚀 StockPulse</h2>
 
-<a href="index.html">Dashboard</a>
-<a href="halal.html">Halal</a>
-<a href="news.html">News</a>
-<a href="signals.html">Signals</a>
-<a href="alerts.html">Alerts</a>
-
+  <a href="index.html">Dashboard</a>
+  <a href="halal.html">Halal</a>
+  <a href="news.html">News</a>
+  <a href="signals.html">Signals</a>
+  <a href="alerts.html">Alerts</a>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
-<h1>📊 Dashboard</h1>
+  <h1>📊 Dashboard</h1>
+  <p style="color:#94a3b8;margin-bottom:15px;">
+    Real-time Halal Market Intelligence
+  </p>
 
-<input id="search" placeholder="AAPL">
-<button onclick="search()">Search</button>
+  <!-- SEARCH -->
+  <div style="margin-bottom:15px;">
+    <input id="search" placeholder="AAPL">
+    <button onclick="search()">Search</button>
+  </div>
 
-<div id="chart"></div>
+  <!-- CHART -->
+  <div id="chart"></div>
 
-<h2>🔥 Live Market</h2>
-<div id="stocks" class="grid"></div>
+  <!-- MARKET -->
+  <h2>🔥 Live Market</h2>
+  <div id="stocks" class="grid"></div>
 
 </div>
 
-<script src="main.js?v=5"></script>
+<script src="main.js?v=6"></script>
 
 </body>
 </html>
