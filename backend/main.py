@@ -23,7 +23,7 @@ app.add_middleware(
 # =============================
 STOCKS = [
     "AAPL","TSLA","MSFT","NVDA","AMZN",
-    "META","GOOGL","NFLX","AMD","INTC",
+    "META","GOOGL","AMD","INTC",
     "BTC-USD","ETH-USD","JPM","BAC","C","GS"
 ]
 
