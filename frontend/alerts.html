@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Alerts | StockPulse PRO</title>
-  <link rel="stylesheet" href="style.css?v=10">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css?v=11">
+
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
   <h2>🚀 StockPulse</h2>
 
@@ -17,15 +24,22 @@
   <a href="alerts.html">Alerts</a>
 </div>
 
+<!-- MAIN -->
 <div class="main">
 
   <h1>🚨 Live Alerts</h1>
 
+  <p style="color:#94a3b8;margin-bottom:15px;">
+    Real-time alerts from Telegram
+  </p>
+
+  <!-- ALERT CONTAINER -->
   <div id="alerts" class="grid"></div>
 
 </div>
 
-<script src="alerts.js?v=10"></script>
+<!-- JS (cache fix) -->
+<script src="alerts.js?v=11"></script>
 
 </body>
 </html>
