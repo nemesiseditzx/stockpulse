@@ -1,4 +1,3 @@
-// ================== CONFIG ==================
 const API="https://stockpulsebadhoneditzx.up.railway.app";
 const WS="wss://stockpulsebadhoneditzx.up.railway.app/ws";
 
@@ -22,56 +21,43 @@ script.innerHTML=JSON.stringify({
 c.appendChild(script);
 }
 
-// ================== WEBSOCKET ==================
+// ================== LIVE STOCK ==================
 const ws = new WebSocket(WS);
 
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  const container = document.getElementById("stocks");
+  renderStocks(data);
+};
 
+// fallback
+function loadStocks(){
+fetch(API+"/stocks")
+.then(r=>r.json())
+.then(res=>{
+renderStocks(res.data);
+});
+}
+
+function renderStocks(data){
+  const container = document.getElementById("stocks");
   if(!container) return;
 
   container.innerHTML="";
 
   Object.keys(data).forEach(symbol => {
     const stock = data[symbol];
-    const colorClass = stock.change >= 0 ? "green" : "red";
+    const color = stock.change >= 0 ? "green" : "red";
 
     container.innerHTML += `
       <div class="card">
         <h3>${symbol}</h3>
         <p>$${stock.price}</p>
-        <p class="${colorClass}">${stock.change}%</p>
+        <p class="${color}">${stock.change}%</p>
         <p>${stock.signal}</p>
+        <p style="font-size:11px;color:#22c55e;">✔ Halal</p>
       </div>
     `;
   });
-};
-
-// ================== FALLBACK ==================
-function loadStocks(){
-fetch(API+"/stocks")
-.then(r=>r.json())
-.then(d=>{
-let c=document.getElementById("stocks");
-if(!c) return;
-
-c.innerHTML="";
-
-Object.keys(d).forEach(s=>{
-let i=d[s];
-let color=i.change>=0?"green":"red";
-
-c.innerHTML+=`
-<div class="card">
-<h3>${s}</h3>
-<p>$${i.price}</p>
-<p class="${color}">${i.change}%</p>
-<p>${i.signal}</p>
-</div>
-`;
-});
-});
 }
 
 // ================== INIT ==================
