@@ -178,3 +178,26 @@ h1, h2{
   font-size:13px;
   color:#94a3b8;
 }
+
+.alert-card{
+  background:#0f172a;
+  padding:12px;
+  border-radius:10px;
+  margin:10px 0;
+  border-left:4px solid #3b82f6;
+  transition:0.3s;
+}
+
+.alert-card:hover{
+  transform:translateX(5px);
+}
+
+.alert-time{
+  font-size:12px;
+  color:#94a3b8;
+  margin-bottom:5px;
+}
+
+.alert-text{
+  font-size:14px;
+}
