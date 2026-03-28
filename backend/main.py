@@ -387,3 +387,66 @@ def home():
         "status": "StockPulse PRO running",
         "powered_by": "Badhon EditZX"
     }
+
+// ================= GLOBAL ALERT SYSTEM =================
+
+const ALERT_API = "https://stockpulsebadhoneditzx.up.railway.app";
+
+let lastAlertTime = localStorage.getItem("lastAlertTime") || 0;
+const sound = new Audio("ding.mp3");
+
+function checkGlobalAlerts(){
+
+  fetch(ALERT_API + "/alerts-today")
+  .then(res => res.json())
+  .then(data => {
+
+    if(!data.length) return;
+
+    const latest = data[0];
+
+    if(latest.time > lastAlertTime){
+
+      showGlobalPopup(latest);
+      playGlobalSound();
+
+      localStorage.setItem("lastAlertTime", latest.time);
+      lastAlertTime = latest.time;
+    }
+
+  });
+}
+
+
+function showGlobalPopup(alert){
+
+  let popup = document.createElement("div");
+
+  popup.style.position = "fixed";
+  popup.style.bottom = "20px";
+  popup.style.right = "20px";
+  popup.style.background = "#1e293b";
+  popup.style.padding = "12px";
+  popup.style.borderRadius = "10px";
+  popup.style.boxShadow = "0 0 10px #3b82f6";
+  popup.style.zIndex = "9999";
+
+  popup.innerHTML = `
+    <strong>🚨 New Alert</strong><br>
+    ${alert.text || ""}
+  `;
+
+  document.body.appendChild(popup);
+
+  setTimeout(() => popup.remove(), 5000);
+}
+
+
+function playGlobalSound(){
+  sound.currentTime = 0;
+  sound.play().catch(()=>{});
+}
+
+
+// RUN EVERYWHERE
+setInterval(checkGlobalAlerts, 5000);
