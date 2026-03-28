@@ -22,6 +22,11 @@ function render(id, data){
   const container = document.getElementById(id);
   container.innerHTML = "";
 
+  if(data.length === 0){
+    container.innerHTML = "<p style='color:#94a3b8;'>No alerts yet</p>";
+    return;
+  }
+
   data.forEach(a => {
 
     const time = new Date(a.time * 1000).toLocaleString();
@@ -29,19 +34,18 @@ function render(id, data){
     container.innerHTML += `
       <div class="card">
 
-        ${a.image ? `<img src="${a.image}" style="width:100%;border-radius:8px;margin-bottom:10px;">` : ""}
+        ${a.image ? `<img src="${a.image}">` : ""}
 
-        <p style="font-size:12px;color:#94a3b8;">
-          ${time}
-        </p>
+        <div class="time">🕒 ${time}</div>
 
-        <p>${a.text}</p>
+        <div style="margin-top:6px;">
+          ${formatText(a.text)}
+        </div>
 
       </div>
     `;
   });
 }
-
 // auto refresh
 loadAlerts();
 setInterval(loadAlerts, 5000);
