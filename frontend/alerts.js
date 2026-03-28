@@ -1,53 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+const API = "https://stockpulsebadhoneditzx.up.railway.app";
 
-  <title>Alerts | StockPulse PRO</title>
+function loadAlerts(){
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="./style.css?v=20">
-</head>
+  fetch(API + "/alerts-today")
+  .then(res => res.json())
+  .then(data => render("today", data))
+  .catch(err => console.log("ERROR:", err));
 
-<body>
+  fetch(API + "/alerts-previous")
+  .then(res => res.json())
+  .then(data => render("previous", data))
+  .catch(err => console.log("ERROR:", err));
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <h2>🚀 StockPulse</h2>
+}
 
-  <a href="index.html">Dashboard</a>
-  <a href="halal.html">Halal</a>
-  <a href="news.html">News</a>
-  <a href="signals.html">Signals</a>
-  <a href="alerts.html" style="background:#1e293b;">Alerts</a>
-</div>
 
-<!-- MAIN -->
-<div class="main">
+function render(id, data){
+  const container = document.getElementById(id);
+  container.innerHTML = "";
 
-  <h1>🚨 Live Alerts</h1>
+  if(!data || data.length === 0){
+    container.innerHTML = "<p style='color:#94a3b8;'>No alerts</p>";
+    return;
+  }
 
-  <p style="color:#94a3b8;margin-bottom:20px;">
-    Real-time alerts from Telegram (Auto organized)
-  </p>
+  data.forEach(a => {
 
-  <!-- 🔥 TODAY ALERTS -->
-  <h2>🔥 Today's Alerts</h2>
-  <div id="today" class="grid">
-    <p style="color:#64748b;">Loading today's alerts...</p>
-  </div>
+    const d = new Date(a.time * 1000);
+    const time = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const date = d.toLocaleDateString();
 
-  <!-- 🕓 PREVIOUS ALERTS -->
-  <h2 style="margin-top:35px;">🕓 Previous Alerts</h2>
-  <div id="previous" class="grid">
-    <p style="color:#64748b;">Loading previous alerts...</p>
-  </div>
+    container.innerHTML += `
+      <div class="card">
 
-</div>
+        ${a.image ? `<img src="${a.image}">` : ""}
 
-<!-- JS -->
-<script src="./alerts.js?v=20"></script>
+        <div style="font-size:12px;color:#94a3b8;">
+          🕒 ${date} • ${time}
+        </div>
 
-</body>
-</html>
+        <div style="margin-top:6px;">
+          ${a.text || ""}
+        </div>
+
+      </div>
+    `;
+  });
+}
+
+
+// INIT
+loadAlerts();
+setInterval(loadAlerts, 5000);
