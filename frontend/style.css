@@ -245,3 +245,29 @@ h2 {
   font-size: 12px;
   color: #94a3b8;
 }
+
+/* 🔥 POPUP ALERT */
+.popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #020617;
+  color: white;
+  padding: 14px 18px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(59,130,246,0.5);
+  z-index: 9999;
+  animation: slideIn 0.3s ease;
+  max-width: 250px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
