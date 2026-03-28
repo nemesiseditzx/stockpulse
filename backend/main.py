@@ -432,7 +432,6 @@ function showGlobalPopup(alert){
   popup.style.zIndex = "9999";
 
   popup.innerHTML = `
-    <strong>🚨 New Alert</strong><br>
     ${alert.text || ""}
   `;
 
