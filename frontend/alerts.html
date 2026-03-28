@@ -7,7 +7,8 @@
   <title>Alerts | StockPulse PRO</title>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="./style.css?v=12">
+  <link rel="stylesheet" href="./style.css?v=13">
+
 </head>
 
 <body>
@@ -28,17 +29,22 @@
 
   <h1>🚨 Live Alerts</h1>
 
-  <p style="color:#94a3b8;margin-bottom:15px;">
-    Real-time alerts from Telegram
+  <p style="color:#94a3b8;margin-bottom:20px;">
+    Real-time alerts from Telegram (Auto organized)
   </p>
 
-  <!-- ALERT CONTAINER -->
-  <div id="alerts" class="grid"></div>
+  <!-- 🔥 TODAY ALERTS -->
+  <h2>🔥 Today's Alerts</h2>
+  <div id="today" class="grid"></div>
+
+  <!-- 🕓 PREVIOUS ALERTS -->
+  <h2 style="margin-top:30px;">🕓 Previous Alerts</h2>
+  <div id="previous" class="grid"></div>
 
 </div>
 
-<!-- ✅ FIXED JS PATH -->
-<script src="./alerts.js?v=12"></script>
+<!-- JS -->
+<script src="./alerts.js?v=13"></script>
 
 </body>
 </html>
