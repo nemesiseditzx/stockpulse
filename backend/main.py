@@ -293,8 +293,7 @@ async def alert_webhook(req: Request):
 
 @app.get("/alerts-live")
 def alerts_live():
-    now = time.time()
-    return [a for a in alerts_db if now - a["time"] < 86400]
+    return alerts_db
 
 # =============================
 # 🔌 WEBSOCKET
