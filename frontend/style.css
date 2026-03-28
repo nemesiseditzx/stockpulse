@@ -201,3 +201,47 @@ h1, h2{
 .alert-text{
   font-size:14px;
 }
+
+/* ============================= */
+/* 🚨 ALERT CARDS PRO */
+/* ============================= */
+
+.card {
+  background: linear-gradient(145deg, #0f172a, #020617);
+  border-radius: 14px;
+  padding: 14px;
+  transition: 0.3s;
+  border: 1px solid rgba(59,130,246,0.2);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0 15px rgba(59,130,246,0.4);
+}
+
+.card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.card p {
+  margin: 4px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 15px;
+}
+
+/* Section Titles */
+h2 {
+  color: #e2e8f0;
+}
+
+/* Timestamp */
+.time {
+  font-size: 12px;
+  color: #94a3b8;
+}
