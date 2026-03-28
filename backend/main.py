@@ -233,11 +233,30 @@ def previous():
     return [m for m in messages_db if 86400 <= now - m["time"] < 604800]
 
 # =============================
-# 🔔 ALERT SYSTEM (UPGRADED 🔥)
+# 🔔 ALERT SYSTEM (FINAL PRO)
 # =============================
 
 ALERT_FILE = "alerts.json"
 
+
+# 📸 TELEGRAM IMAGE HELPER
+def get_telegram_file_url(file_id):
+    TOKEN = "8729117748:AAG7XRR9SYVW47g7oEtBrHdmtrk5iRmm7L4"  # 🔥  bot token 
+
+    try:
+        url = f"https://api.telegram.org/bot{TOKEN}/getFile?file_id={file_id}"
+        res = requests.get(url).json()
+
+        if res.get("ok"):
+            file_path = res["result"]["file_path"]
+            return f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
+    except Exception as e:
+        print("IMAGE ERROR:", e)
+
+    return None
+
+
+# 📂 LOAD / SAVE
 def load_alerts():
     if not os.path.exists(ALERT_FILE):
         return []
@@ -247,13 +266,16 @@ def load_alerts():
         except:
             return []
 
+
 def save_alerts(data):
     with open(ALERT_FILE, "w") as f:
         json.dump(data, f)
 
+
 alerts_db = load_alerts()
 
 
+# 📩 TELEGRAM WEBHOOK
 @app.post("/alert-webhook")
 async def alert_webhook(req: Request):
     global alerts_db
@@ -266,13 +288,19 @@ async def alert_webhook(req: Request):
         if not message:
             return {"ok": True}
 
-        text = message.get("text", "")
+        # ✅ TEXT + CAPTION
+        text = message.get("text") or message.get("caption")
+
         image = None
 
-        # 🔥 IMAGE SUPPORT
+        # 📸 IMAGE
         if "photo" in message:
-            image = "https://picsum.photos/400/200"
+            photo = message["photo"][-1]
+            file_id = photo["file_id"]
 
+            image = get_telegram_file_url(file_id)
+
+        # ✅ SAVE
         if text or image:
             alerts_db.insert(0, {
                 "text": text,
@@ -282,29 +310,17 @@ async def alert_webhook(req: Request):
 
             save_alerts(alerts_db)
 
+            print("✅ ALERT SAVED")
+
     except Exception as e:
-        print("ERROR:", e)
+        print("❌ ALERT ERROR:", e)
 
     return {"ok": True}
-
-
-# 🔥 CLEAN OLD (7 DAYS)
-def clean_alerts():
-    global alerts_db
-    now = time.time()
-
-    alerts_db = [
-        a for a in alerts_db
-        if now - a["time"] < 604800  # 7 days
-    ]
-
-    save_alerts(alerts_db)
 
 
 # 🔥 TODAY ALERTS (24h)
 @app.get("/alerts-today")
 def alerts_today():
-    clean_alerts()
     now = time.time()
 
     return [
@@ -313,16 +329,16 @@ def alerts_today():
     ]
 
 
-# 🔥 PREVIOUS ALERTS (1–7 days)
+# 🔥 PREVIOUS ALERTS (PERMANENT)
 @app.get("/alerts-previous")
 def alerts_previous():
-    clean_alerts()
     now = time.time()
 
     return [
         a for a in alerts_db
-        if 86400 <= now - a["time"] < 604800
+        if now - a["time"] >= 86400
     ]
+    
 # =============================
 # 🔌 WEBSOCKET
 # =============================
