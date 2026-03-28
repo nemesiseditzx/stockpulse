@@ -1,64 +1,47 @@
 const API = "https://stockpulsebadhoneditzx.up.railway.app";
 
 function loadAlerts(){
-  console.log("Loading alerts...");
 
-  fetch(API + "/alerts-live")
+  // TODAY
+  fetch(API + "/alerts-today")
   .then(res => res.json())
   .then(data => {
+    render("today", data);
+  });
 
-    console.log("DATA:", data); // 🔥 DEBUG
+  // PREVIOUS
+  fetch(API + "/alerts-previous")
+  .then(res => res.json())
+  .then(data => {
+    render("previous", data);
+  });
 
-    const container = document.getElementById("alerts");
+}
 
-    if(!container){
-      console.log("❌ container not found");
-      return;
-    }
+function render(id, data){
+  const container = document.getElementById(id);
+  container.innerHTML = "";
 
-    container.innerHTML = "";
+  data.forEach(a => {
 
-    if(!data || data.length === 0){
-      container.innerHTML = "<p>No alerts yet...</p>";
-      return;
-    }
+    const time = new Date(a.time * 1000).toLocaleString();
 
-    data.forEach(a => {
+    container.innerHTML += `
+      <div class="card">
 
-      const time = new Date(a.time * 1000).toLocaleString();
+        ${a.image ? `<img src="${a.image}" style="width:100%;border-radius:8px;margin-bottom:10px;">` : ""}
 
-      container.innerHTML += `
-        <div class="card">
+        <p style="font-size:12px;color:#94a3b8;">
+          ${time}
+        </p>
 
-          ${a.image ? `<img src="${a.image}" style="width:100%;border-radius:8px;margin-bottom:10px;">` : ""}
+        <p>${a.text}</p>
 
-          <p style="font-size:12px;color:#94a3b8;">
-            ${time}
-          </p>
-
-          <p style="margin-top:6px;">
-            ${formatText(a.text)}
-          </p>
-
-        </div>
-      `;
-    });
-
-  })
-  .catch(err => {
-    console.log("❌ FETCH ERROR:", err);
+      </div>
+    `;
   });
 }
 
-function formatText(text){
-  if(!text) return "";
-
-  text = text.replace(/BUY/gi, "<span style='color:#22c55e'>BUY</span>");
-  text = text.replace(/SELL/gi, "<span style='color:#ef4444'>SELL</span>");
-
-  return text;
-}
-
-// INIT
+// auto refresh
 loadAlerts();
 setInterval(loadAlerts, 5000);
