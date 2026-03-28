@@ -68,8 +68,8 @@ def get_stocks():
                     "signal": signal
                 }
 
-        except:
-            continue
+        except Exception as e:
+            print("STOCK ERROR:", e)
 
     cache = data
     cache_time = time.time()
@@ -78,10 +78,8 @@ def get_stocks():
 
 @app.get("/stocks")
 def stocks():
-    return {
-        "data": get_stocks(),
-        "powered_by": "Badhon EditZX"
-    }
+    return {"data": get_stocks()}
+
 
 # =============================
 # 🕌 HALAL SYSTEM
@@ -111,8 +109,10 @@ def halal(symbol: str):
 
         return {"status": "HALAL"}
 
-    except:
+    except Exception as e:
+        print("HALAL ERROR:", e)
         return {"status": "UNKNOWN"}
+
 
 # =============================
 # 📰 NEWS SYSTEM
@@ -129,34 +129,32 @@ def news():
 
         for n in data[:12]:
             title = (n.get("headline") or "").lower()
-            summary = n.get("summary", "")
 
-            effect = "Market impact expected"
             sentiment = "Neutral"
             sector = "General"
 
             if "fed" in title or "interest" in title:
                 sentiment = "Bearish"
                 sector = "Tech"
-
             elif "ai" in title or "chip" in title:
                 sentiment = "Bullish"
                 sector = "Technology"
 
             news_list.append({
                 "title": n.get("headline"),
-                "summary": summary,
+                "summary": n.get("summary"),
                 "image": n.get("image"),
                 "url": n.get("url"),
-                "effect": effect,
                 "sentiment": sentiment,
                 "sector": sector
             })
 
         return news_list
 
-    except:
+    except Exception as e:
+        print("NEWS ERROR:", e)
         return []
+
 
 # =============================
 # 📡 SIGNAL SYSTEM
@@ -176,12 +174,8 @@ def save_messages(data):
     with open(SIGNAL_FILE, "w") as f:
         json.dump(data, f)
 
-messages_db = load_messages()
-
 @app.post("/telegram-webhook")
 async def telegram_webhook(req: Request):
-    global messages_db
-
     data = await req.json()
 
     try:
@@ -193,12 +187,14 @@ async def telegram_webhook(req: Request):
         text = message.get("text") or message.get("caption", "")
 
         if text:
-            messages_db.insert(0, {
+            messages = load_messages()
+
+            messages.insert(0, {
                 "text": text,
                 "time": int(time.time())
             })
 
-            save_messages(messages_db)
+            save_messages(messages)
 
     except Exception as e:
         print("SIGNAL ERROR:", e)
@@ -206,80 +202,54 @@ async def telegram_webhook(req: Request):
     return {"ok": True}
 
 
-def clean_old():
-    global messages_db
-
-    now = time.time()
-
-    messages_db = [
-        m for m in messages_db
-        if now - m["time"] < 604800
-    ]
-
-    save_messages(messages_db)
-
-
 @app.get("/signals-current")
 def current():
-    clean_old()
     now = time.time()
-    return [m for m in messages_db if now - m["time"] < 86400]
+    return [m for m in load_messages() if now - m["time"] < 86400]
 
 
 @app.get("/signals-previous")
 def previous():
-    clean_old()
     now = time.time()
-    return [m for m in messages_db if 86400 <= now - m["time"] < 604800]
+    return [m for m in load_messages() if 86400 <= now - m["time"] < 604800]
+
 
 # =============================
-# 🔔 ALERT SYSTEM (FINAL PRO)
+# 🔔 ALERT SYSTEM (FINAL FIXED)
 # =============================
-
 ALERT_FILE = "alerts.json"
 
+def load_alerts():
+    if not os.path.exists(ALERT_FILE):
+        return []
+    try:
+        with open(ALERT_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return []
 
-# 📸 TELEGRAM IMAGE HELPER
+def save_alerts(data):
+    with open(ALERT_FILE, "w") as f:
+        json.dump(data, f)
+
 def get_telegram_file_url(file_id):
-    TOKEN = "8729117748:AAG7XRR9SYVW47g7oEtBrHdmtrk5iRmm7L4"  # 🔥  bot token 
+    TOKEN = "YOUR_BOT_TOKEN"
 
     try:
         url = f"https://api.telegram.org/bot{TOKEN}/getFile?file_id={file_id}"
         res = requests.get(url).json()
 
         if res.get("ok"):
-            file_path = res["result"]["file_path"]
-            return f"https://api.telegram.org/file/bot{TOKEN}/{file_path}"
+            path = res["result"]["file_path"]
+            return f"https://api.telegram.org/file/bot{TOKEN}/{path}"
     except Exception as e:
         print("IMAGE ERROR:", e)
 
     return None
 
 
-# 📂 LOAD / SAVE
-def load_alerts():
-    if not os.path.exists(ALERT_FILE):
-        return []
-    with open(ALERT_FILE, "r") as f:
-        try:
-            return json.load(f)
-        except:
-            return []
-
-
-def save_alerts(data):
-    with open(ALERT_FILE, "w") as f:
-        json.dump(data, f)
-
-
-alerts_db = load_alerts()
-
-
-# 📩 TELEGRAM WEBHOOK
 @app.post("/alert-webhook")
 async def alert_webhook(req: Request):
-    global alerts_db
-
     data = await req.json()
 
     try:
@@ -288,57 +258,44 @@ async def alert_webhook(req: Request):
         if not message:
             return {"ok": True}
 
-        # ✅ TEXT + CAPTION
-        text = message.get("text") or message.get("caption")
-
+        text = message.get("text") or message.get("caption", "")
         image = None
 
-        # 📸 IMAGE
         if "photo" in message:
-            photo = message["photo"][-1]
-            file_id = photo["file_id"]
-
+            file_id = message["photo"][-1]["file_id"]
             image = get_telegram_file_url(file_id)
 
-        # ✅ SAVE
         if text or image:
-            alerts_db.insert(0, {
+            alerts = load_alerts()
+
+            alerts.insert(0, {
                 "text": text,
                 "image": image,
                 "time": int(time.time())
             })
 
-            save_alerts(alerts_db)
+            save_alerts(alerts)
 
-            print("✅ ALERT SAVED")
+            print("ALERT SAVED")
 
     except Exception as e:
-        print("❌ ALERT ERROR:", e)
+        print("ALERT ERROR:", e)
 
     return {"ok": True}
 
 
-# 🔥 TODAY ALERTS (24h)
 @app.get("/alerts-today")
 def alerts_today():
     now = time.time()
-
-    return [
-        a for a in alerts_db
-        if now - a["time"] < 86400
-    ]
+    return [a for a in load_alerts() if now - a["time"] < 86400]
 
 
-# 🔥 PREVIOUS ALERTS (PERMANENT)
 @app.get("/alerts-previous")
 def alerts_previous():
     now = time.time()
+    return [a for a in load_alerts() if now - a["time"] >= 86400]
 
-    return [
-        a for a in alerts_db
-        if now - a["time"] >= 86400
-    ]
-    
+
 # =============================
 # 🔌 WEBSOCKET
 # =============================
@@ -357,10 +314,7 @@ class ConnectionManager:
     async def broadcast(self, data):
         for conn in self.connections:
             try:
-                await conn.send_json({
-                    "data": data,
-                    "powered_by": "Badhon EditZX"
-                })
+                await conn.send_json({"data": data})
             except:
                 pass
 
@@ -378,74 +332,10 @@ async def websocket_endpoint(ws: WebSocket):
     except:
         manager.disconnect(ws)
 
+
 # =============================
 # 🧠 HEALTH
 # =============================
 @app.get("/")
 def home():
-    return {
-        "status": "StockPulse PRO running",
-        "powered_by": "Badhon EditZX"
-    }
-
-// ================= GLOBAL ALERT SYSTEM =================
-
-const ALERT_API = "https://stockpulsebadhoneditzx.up.railway.app";
-
-let lastAlertTime = localStorage.getItem("lastAlertTime") || 0;
-const sound = new Audio("ding.mp3");
-
-function checkGlobalAlerts(){
-
-  fetch(ALERT_API + "/alerts-today")
-  .then(res => res.json())
-  .then(data => {
-
-    if(!data.length) return;
-
-    const latest = data[0];
-
-    if(latest.time > lastAlertTime){
-
-      showGlobalPopup(latest);
-      playGlobalSound();
-
-      localStorage.setItem("lastAlertTime", latest.time);
-      lastAlertTime = latest.time;
-    }
-
-  });
-}
-
-
-function showGlobalPopup(alert){
-
-  let popup = document.createElement("div");
-
-  popup.style.position = "fixed";
-  popup.style.bottom = "20px";
-  popup.style.right = "20px";
-  popup.style.background = "#1e293b";
-  popup.style.padding = "12px";
-  popup.style.borderRadius = "10px";
-  popup.style.boxShadow = "0 0 10px #3b82f6";
-  popup.style.zIndex = "9999";
-
-  popup.innerHTML = `
-    ${alert.text || ""}
-  `;
-
-  document.body.appendChild(popup);
-
-  setTimeout(() => popup.remove(), 5000);
-}
-
-
-function playGlobalSound(){
-  sound.currentTime = 0;
-  sound.play().catch(()=>{});
-}
-
-
-// RUN EVERYWHERE
-setInterval(checkGlobalAlerts, 5000);
+    return {"status": "StockPulse PRO running"}
