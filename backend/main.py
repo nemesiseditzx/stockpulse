@@ -233,18 +233,19 @@ def previous():
     return [m for m in messages_db if 86400 <= now - m["time"] < 604800]
 
 # =============================
-# 🔔 ALERT SYSTEM (FINAL FIXED)
+# 🔔 ALERT SYSTEM (UPGRADED 🔥)
 # =============================
+
 ALERT_FILE = "alerts.json"
 
 def load_alerts():
     if not os.path.exists(ALERT_FILE):
         return []
-    try:
-        with open(ALERT_FILE, "r") as f:
+    with open(ALERT_FILE, "r") as f:
+        try:
             return json.load(f)
-    except:
-        return []
+        except:
+            return []
 
 def save_alerts(data):
     with open(ALERT_FILE, "w") as f:
@@ -252,49 +253,76 @@ def save_alerts(data):
 
 alerts_db = load_alerts()
 
+
 @app.post("/alert-webhook")
 async def alert_webhook(req: Request):
     global alerts_db
 
     data = await req.json()
 
-    print("🔥 ALERT RECEIVED:", data)
-
     try:
-        message = data.get("channel_post") or data.get("message")
+        message = data.get("message") or data.get("channel_post")
 
         if not message:
-            print("❌ NO MESSAGE")
             return {"ok": True}
 
-        text = message.get("text") or message.get("caption", "")
+        text = message.get("text", "")
         image = None
 
+        # 🔥 IMAGE SUPPORT
         if "photo" in message:
             image = "https://picsum.photos/400/200"
 
         if text or image:
-            new_alert = {
+            alerts_db.insert(0, {
                 "text": text,
                 "image": image,
                 "time": int(time.time())
-            }
+            })
 
-            alerts_db.insert(0, new_alert)
             save_alerts(alerts_db)
 
-            print("✅ ALERT SAVED:", new_alert)
-
     except Exception as e:
-        print("❌ ALERT ERROR:", e)
+        print("ERROR:", e)
 
     return {"ok": True}
 
 
-@app.get("/alerts-live")
-def alerts_live():
-    return alerts_db
+# 🔥 CLEAN OLD (7 DAYS)
+def clean_alerts():
+    global alerts_db
+    now = time.time()
 
+    alerts_db = [
+        a for a in alerts_db
+        if now - a["time"] < 604800  # 7 days
+    ]
+
+    save_alerts(alerts_db)
+
+
+# 🔥 TODAY ALERTS (24h)
+@app.get("/alerts-today")
+def alerts_today():
+    clean_alerts()
+    now = time.time()
+
+    return [
+        a for a in alerts_db
+        if now - a["time"] < 86400
+    ]
+
+
+# 🔥 PREVIOUS ALERTS (1–7 days)
+@app.get("/alerts-previous")
+def alerts_previous():
+    clean_alerts()
+    now = time.time()
+
+    return [
+        a for a in alerts_db
+        if 86400 <= now - a["time"] < 604800
+    ]
 # =============================
 # 🔌 WEBSOCKET
 # =============================
