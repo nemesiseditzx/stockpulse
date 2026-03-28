@@ -1,65 +1,53 @@
-const API = "https://stockpulsebadhoneditzx.up.railway.app";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-function loadAlerts(){
+  <title>Alerts | StockPulse PRO</title>
 
-  // TODAY
-  fetch(API + "/alerts-today")
-  .then(res => res.json())
-  .then(data => render("today", data));
+  <!-- CSS -->
+  <link rel="stylesheet" href="./style.css?v=20">
+</head>
 
-  // PREVIOUS
-  fetch(API + "/alerts-previous")
-  .then(res => res.json())
-  .then(data => render("previous", data));
+<body>
 
-}
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>🚀 StockPulse</h2>
 
+  <a href="index.html">Dashboard</a>
+  <a href="halal.html">Halal</a>
+  <a href="news.html">News</a>
+  <a href="signals.html">Signals</a>
+  <a href="alerts.html" style="background:#1e293b;">Alerts</a>
+</div>
 
-function render(id, data){
-  const container = document.getElementById(id);
-  container.innerHTML = "";
+<!-- MAIN -->
+<div class="main">
 
-  if(data.length === 0){
-    container.innerHTML = "<p style='color:#94a3b8;'>No alerts</p>";
-    return;
-  }
+  <h1>🚨 Live Alerts</h1>
 
-  data.forEach(a => {
+  <p style="color:#94a3b8;margin-bottom:20px;">
+    Real-time alerts from Telegram (Auto organized)
+  </p>
 
-    const d = new Date(a.time * 1000);
+  <!-- 🔥 TODAY ALERTS -->
+  <h2>🔥 Today's Alerts</h2>
+  <div id="today" class="grid">
+    <p style="color:#64748b;">Loading today's alerts...</p>
+  </div>
 
-    const time = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    const date = d.toLocaleDateString();
+  <!-- 🕓 PREVIOUS ALERTS -->
+  <h2 style="margin-top:35px;">🕓 Previous Alerts</h2>
+  <div id="previous" class="grid">
+    <p style="color:#64748b;">Loading previous alerts...</p>
+  </div>
 
-    const full = `${date} • ${time}`;
+</div>
 
-    container.innerHTML += `
-      <div class="card">
+<!-- JS -->
+<script src="./alerts.js?v=20"></script>
 
-        ${a.image ? `<img src="${a.image}">` : ""}
-
-        <div class="time">🕒 ${full}</div>
-
-        <div style="margin-top:6px;">
-          ${formatText(a.text)}
-        </div>
-
-      </div>
-    `;
-  });
-}
-
-
-function formatText(text){
-  if(!text) return "";
-
-  text = text.replace(/BUY/gi, "<span style='color:#22c55e'>BUY</span>");
-  text = text.replace(/SELL/gi, "<span style='color:#ef4444'>SELL</span>");
-
-  return text;
-}
-
-
-// AUTO REFRESH
-loadAlerts();
-setInterval(loadAlerts, 5000);
+</body>
+</html>
