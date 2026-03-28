@@ -12,10 +12,6 @@ function loadAlerts(){
     render("today", data);
 
     // 🔥 NEW ALERT DETECT
-    if(data.length > lastCount){
-      showPopup(data[0]);
-      playSound();
-    }
 
     lastCount = data.length;
 
