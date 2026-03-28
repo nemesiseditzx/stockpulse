@@ -233,7 +233,7 @@ def save_alerts(data):
         json.dump(data, f)
 
 def get_telegram_file_url(file_id):
-    TOKEN = "YOUR_BOT_TOKEN"
+    TOKEN = "8729117748:AAG7XRR9SYVW47g7oEtBrHdmtrk5iRmm7L4"
 
     try:
         url = f"https://api.telegram.org/bot{TOKEN}/getFile?file_id={file_id}"
