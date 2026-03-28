@@ -136,3 +136,70 @@ function renderSummary(data){
 search("AAPL");
 loadStocks();
 setInterval(loadStocks, 10000);
+
+// ================= GLOBAL ALERT POPUP =================
+
+const ALERT_API = "https://stockpulsebadhoneditzx.up.railway.app";
+
+let lastAlertTime = localStorage.getItem("lastAlertTime") || 0;
+const sound = new Audio("ding.mp3");
+
+function checkAlerts(){
+
+  fetch(ALERT_API + "/alerts-today")
+  .then(res => res.json())
+  .then(data => {
+
+    if(!data || !data.length) return;
+
+    const latest = data[0];
+
+    if(Number(latest.time) > Number(lastAlertTime)){
+
+      showPopup(latest);
+      playSound();
+
+      localStorage.setItem("lastAlertTime", latest.time);
+      lastAlertTime = latest.time;
+    }
+
+  })
+  .catch(()=>{});
+}
+
+
+// 🔥 POPUP
+function showPopup(alert){
+
+  const div = document.createElement("div");
+
+  div.style.position = "fixed";
+  div.style.top = "20px";
+  div.style.right = "20px";
+  div.style.background = "#020617";
+  div.style.color = "white";
+  div.style.padding = "12px";
+  div.style.borderRadius = "10px";
+  div.style.boxShadow = "0 0 15px #3b82f6";
+  div.style.zIndex = "9999";
+
+  div.innerHTML = `
+    <strong>🚨 New Alert</strong><br>
+    ${alert.text || ""}
+  `;
+
+  document.body.appendChild(div);
+
+  setTimeout(() => div.remove(), 4000);
+}
+
+
+// 🔊 SOUND
+function playSound(){
+  sound.currentTime = 0;
+  sound.play().catch(()=>{});
+}
+
+
+// AUTO RUN
+setInterval(checkAlerts, 5000);
